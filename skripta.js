@@ -3,10 +3,12 @@ const ctx=canvas.getContext("2d");
 const canvasWidth= canvas.width;
 const canvasHeight= canvas.height;
 
+const AktivneAnimacije = new Map();
+
 const symbols = [
-    { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
+    // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
-    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
     // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
     // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
@@ -22,20 +24,42 @@ const symbols = [
     return symbols[randomIndex];
 }
 
-    
 
-    
 
+
+const page= document.getElementById("main-container");
+const dugme = document.getElementById("button");
+const dugme2 = document.getElementById("button2");
+const dugme3 = document.getElementById("button3");
+dugme.addEventListener("click",()=>{drawSlot();});
+dugme2.addEventListener("click",()=>{Spoji();});
+dugme3.addEventListener("click",()=>{crtajAX();});
+
+
+
+const symWidth=50;
+const symHeight=50;  
+
+let drawSymbols;
+   let sviSimboli;
 
 function drawSlot(){
     const rows=3;
     const cols=5;
-    const symWidth=50;
-    const symHeight=50;
+
+    if(drawSymbols && Array.isArray(drawSymbols)){
+        for(let simbol of drawSymbols){
+            if(simbol._animationID) cancelAnimationFrame(simbol._animationID);
+            simbol._isRunning=false;
+        }
+    }
+    AktivneAnimacije.clear();
+    
     ctx.clearRect(0,0,canvasWidth,canvasHeight);
     ctx.fillRect(0,0,1,1);
-
-    drawSymbols = [];
+    
+   drawSymbols = [];
+   sviSimboli = [];
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
             const symbol=generateSymbol();
@@ -55,152 +79,171 @@ function drawSlot(){
                         src: symbol.srcSprite,
                         srcStatic : symbol.src,
                         width: symWidth,
-                        height: symHeight
+                        height: symHeight,
+                        _isRunning: false,
+                        _animationID : null
                     });
 
-            img.onload= function(){
-                // if(row===0){
-                //     const x= col * symHeight;
-                //     const y= offset;
-                //     ctx.drawImage(img,0,0,imgWidth,imgHeight, x, y, symWidth, symHeight); 
-                //     // ctx.strokeStyle = "red";
-                //     // ctx.strokeRect(x, y, symWidth, symHeight);
-                // }
-                // else if(row === 1 )
-                // {
-                //     const x= col * (symWidth+offset*4.7);
-                //     const y= row * symHeight;
-                //     ctx.drawImage(img,0,0,imgWidth,imgHeight, x, y, symWidth, symHeight);
-                //     // ctx.strokeStyle = "red";
-                //     // ctx.strokeRect(x, y, symWidth, symHeight);
-                // }
-                // else if (row===2)
-                // {
-                //     const x= col * (symWidth+offset*4.1);
-                //     const y= row * symHeight;
-                //     ctx.drawImage(img, x, y, symWidth, symHeight);
-                // }
-                // else{
-                   
-                    ctx.drawImage(img, x, y, symWidth, symHeight);
+            sviSimboli.push({
+                        id: symbol.id
+,                       x: x,
+                        y: y,
+                        src: symbol.srcSprite,
+                        srcStatic : symbol.src,
+                        width: symWidth,
+                        height: symHeight,
+                        _isRunning: false,
+                        _animationID : null
+                    });                    
 
-                    //   ctx.strokeStyle = "red";
-                    // ctx.strokeRect(x, y, symWidth, symHeight);
-                // }
+            img.onload= function(){
+             
+                    ctx.drawImage(img, x, y, symWidth, symHeight);
                 
             }
            
         }
     }
-     console.log(drawSymbols);
+    if (loopAnimacija) {
+    clearTimeout(loopAnimacija);
+    loopAnimacija = null;
+    }
+    dobitneLinije = [];
+    setTimeout(()=>{
+        Spoji();
+    },700);
+    
+
+    //  console.log(drawSymbols);
 }
 
 let dobitneLinije=[];
 let loopAnimacija=null;
-let currentIndex=0;
-let linijezaCrtanje;
+let SviSimboli=[];
 
 function Spoji(){
+    console.log("POZVANA FJA");
     let x1;
     let x2;
     let brojac = 0
     let j;
+    //Idemo kroz redove 
     for (let m = 0;m<3;m++){
         brojac=0;
-        x1=drawSymbols[m*5];
-        j = m*5+1;
+        x1=drawSymbols[m*5]; //prvi element za svaki red
+        j = m*5+1; // indeks za element nakon prvog u redu
         for (let i=0;i<4;i++){
             x2=drawSymbols[j];
-            if(x1.id===x2.id){
+            if(x1.id===x2.id){ // provera da li su isti 
                 j++;
                 brojac++
             }
         }
         console.log("brojac: " + brojac);
         if(brojac >= 2){
-            console.log("Imas 3 ili vise simbola spojena");
+            // console.log("Imas 3 ili vise simbola spojena");
             ctx.strokeStyle = "red";
-            let prom=5*m;
-            let startX=drawSymbols[prom].x;
-            let startY=drawSymbols[prom].y;
+            let prom=5*m; // indeks za prvi element u nizu 
+          
             while(0<=brojac){
                 tempSimb=drawSymbols[prom];
-                // console.log(tempSimb);
-                // tempX=tempSimb.x;
-                // tempY=tempSimb.y;
-                // symWidth=tempSimb.width;
-                // symHeight=tempSimb.height;
-                console.log(tempSimb);
-                startCanvasAnimation(1500,tempSimb);
-                // dobitneLinije.push(tempSimb);
-                // ctx.strokeRect(tempX, tempY, symWidth, symHeight);
-                prom++;
-                brojac--;
+                // startCanvasAnimation(1500,tempSimb);
+                dobitneLinije.push(tempSimb); // pusujem u niz sve simbole koji su dobitni sa svim atributima {src,x,y,width,height,id}
+                prom++; // prelazimo na sledeci koji je dobitan
+                brojac--; 
                 console.log("prom kroz while: " + prom);
-                
             }
 
-            //radi ali samo preko i ako ima 2 linije koje spaja ne radi jer prvu samo prepozna ali posle ne :(
-            console.log(drawSymbols[prom]);
-            symHeight=drawSymbols[0].height;
-            symWidth=drawSymbols[0].width;
-            
-            let endX;
-            let endY;
-            if(brojac===-1 || prom===15)
+            console.log(dobitneLinije);
+
+            if(dobitneLinije.length>0)
             {
-               endX=drawSymbols[prom-1].x;
-               endY=drawSymbols[prom-1].y;
-            }
-            else {
-               endX=drawSymbols[prom].x;
-               endY=drawSymbols[prom].y;
-            }
-            
-            
-            
-            endY=endY+symHeight/2;
-            console.log("Pocetno x:" + startX);
-            console.log("Pocetno Y:" + startY);
-            console.log("Kraj x:" + endX);
-            console.log("Kraj y:" + endY);
-            // setTimeout(() => {
-            ctx.beginPath();
-            ctx.moveTo(startX, endY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = "yellow";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            let endCanvas=canvasWidth-symWidth/2;
-            ctx.moveTo(endX,endY);
-            ctx.lineTo(endCanvas,endY);
-            ctx.stroke();
-            //  }, 1500); // istovremeno kad i animacija prestaje
-
-             
+                pokreniAnimacijuSvih();
+            }  
         }
-                
         else{
             console.log("nema nista");
         }
-        // console.log("J: " + j);
-        // console.log("X1: " + x1.id);
-        // console.log("X2: " + x2.id);
-        
+  
     }
         
     
 }
 
-const dugme2 = document.getElementById("button2");
-dugme2.addEventListener("click",()=>{Spoji();});
+function pokreniAnimacijuSvih(){
+    for(let simbol of dobitneLinije){
+        let y= simbol.y;
+        let yPoz= y+(simbol.height/2);
+        startCanvasAnimation(1800,simbol);
+        nacrtajLinije(simbol.x,canvasWidth-simbol.width/2,yPoz);
+    }
+    setTimeout(()=>{
+            pokreniAnimLoop();
+    },3000);
+}
 
-const dugme = document.getElementById("button");
+function pokreniAnimLoop() {
+    //  if (loopAnimacija) {
+    //     clearTimeout(loopAnimacija);
+    //     loopAnimacija = null;
+    // }
+    // Grupisanje simbola po y vrednosti
+    const grupePoY = {}; // pravimo dictionary za sortiranje po y vrednosti
 
-dugme.addEventListener("click",()=>{drawSlot();});
+    for (let simbol of dobitneLinije) {
+        if (!grupePoY[simbol.y]) {
+            grupePoY[simbol.y] = [];
+        }
+
+        //kako zna da treba simbol za y= 0 da ubaci u niz recnika grupePoY sa vrednoscu nula
+        //Odgovor :  Zato što  eksplicitno se koristi vrednost simbol.y kao ključ u rečniku (grupePoY), i sam odlučuješ gde da ga ubaciš:
+        grupePoY[simbol.y].push(simbol);
+    }
+    // console.log("Grupe po Y" + grupePoY);
+    
+    // Sortiranje y vrednosti (npr. 0, 50, 100)
+    const yRedosled = Object.keys(grupePoY).map(Number).sort((a, b) => a - b);
+    
+    // console.log("YRedosled : " + yRedosled);
+    
+    let indeks = 0;
+
+    function animirajSledecuGrupu() {
+        if (indeks >= yRedosled.length) return;
+
+        const y = yRedosled[indeks];
+        const grupa = grupePoY[y];
+
+        let i =0;
+
+        let duzina = grupa.length; 
+        let startX= grupa[0].x; //prva x koordinata
+        let endX=grupa[duzina-1].x; // kranja xx koordinata
+        let yPoz = y+(grupa[0].height)/2; // sredina y svakog reda za crtanje linije
+        console.log("y : " + y);
+        console.log("yPoz : " + yPoz); 
+        console.log("start x" + startX);
+        console.log("end x" + endX);
+        console.log("ovo je i !!! : " +  i);
+        // console.log("Y: " + y);
+        // console.log("Grupa: " + grupa);
+
+        // Animacija svih simbola u toj grupi
+        for (let simbol of grupa) {
+            startCanvasAnimation(1800, simbol);
+            i++;
+        }
+        
+        nacrtajLinije(startX,endX,yPoz);
+        
+        indeks++;
+        loopAnimacija=setTimeout(animirajSledecuGrupu, 2200); // rekurzivni poziv fje da animira sve ostale grupe po vrednoscu Y 
+    }
+
+    animirajSledecuGrupu(); // pokreni prvu grupu
+}
 
 
-const page= document.getElementById("main-container");
 
 function resize()
 {   
@@ -229,28 +272,37 @@ resizeAndLoadEvents([
     resize
 ]);
 
-
-
-
-    
-    const frameInterval = 1000/60;
-
-  
-
+const frameInterval = 1000/45;
 
 function startCanvasAnimation(duration,symbolObj){
     // console.log(symbolObj);
+     if (!symbolObj || !symbolObj.src) return;
+    // console.log("Pozvana startCanvas");
+    if(symbolObj._isRunning) return;
+    //Kontrola da ne dodje do poklapanja animacija 
+    const key = `${symbolObj.x}_${symbolObj.y}`;
+    const now = Date.now();
+    if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 100) return;
+    AktivneAnimacije.set(key, now);
+    //
+    if(symbolObj._animationID){
+        cancelAnimationFrame(symbolObj._animationID);
+        symbolObj._isRunning=false;
+    }
+
     const spriteImage = new Image();
     spriteImage.src=symbolObj.src;
     // console.log(spriteImage);
-    animationisRunning=true;
+    symbolObj._isRunning=true;
     spriteImage.onload = () => {
         const animationFunction = createAnimation(spriteImage,symbolObj);
-        animationID=requestAnimationFrame(animationFunction);
+        symbolObj._animationID=requestAnimationFrame(animationFunction);
     }
     setTimeout(()=>{
-        animationisRunning=false;
-        cancelAnimationFrame(animationID);
+        symbolObj._isRunning=false;
+        if(symbolObj._animationID){
+            cancelAnimationFrame(symbolObj._animationID);
+        }
         drawStaticLogo(symbolObj);
     },duration);
 }   
@@ -259,22 +311,34 @@ function createAnimation(image,symbolData){
 
     let frameRate = 0;
     let number = 0;
-    let diff=null;
-
+    let diff=0;
     let frameTimer = 0;
+    // console.log("Pozvana createAnimation");
 
+
+    let firstCall = true;
     return function animate(timmy){    
         // console.log(symbolData);
-        const SpriteWidth=image.width;
-        const SpriteHeight= (image.height/24);
+         if (!symbolData._isRunning) return;
+
+        if(firstCall){
+            number=timmy;
+            firstCall=false;
+        }
+        
         if(timmy){
             diff=timmy-number;
             number=timmy;
         }
-        if(!animationisRunning) return false;
+        const SpriteWidth=image.width;
+        const SpriteHeight= (image.height/24);
 
-        ctx.clearRect(0,0,drawSymbols.width,drawSymbols.height);
-        ctx.fillRect(0,0,1,1);
+       if (frameRate === 0 && frameTimer === 0) {
+        console.log("Diff: " + diff);
+        }
+        ctx.clearRect(symbolData.x, symbolData.y, symbolData.width, symbolData.height);
+
+        // ctx.fillRect(0,0,1,1);
 
         frameTimer+=diff;
         if(frameTimer>=frameInterval){
@@ -283,18 +347,144 @@ function createAnimation(image,symbolData){
         }
         ctx.drawImage(image,0,frameRate*SpriteHeight,SpriteWidth,SpriteHeight,symbolData.x,symbolData.y,symbolData.width,symbolData.height);
 
-        animationID= requestAnimationFrame(animate);
+        symbolData._animationID = requestAnimationFrame(animate);
 
     }
 }
 
-  
+ const KesiraneSlike = new Map(); 
 
 function drawStaticLogo(image){
-    const simbol= new Image();
-    simbol.src=image.srcStatic;
-    simbol.onload= () =>{
-        ctx.clearRect(image.x,image.y,image.width,image.height);
-        ctx.drawImage(simbol,image.x,image.y,image.width,image.height);
+    // console.log("Pozvana Static");
+    ctx.clearRect(image.x, image.y, image.width, image.height);
+
+    const kljuc = image.srcStatic;
+
+    if (KesiraneSlike.has(kljuc)) {
+        const keširanaSlika = KesiraneSlike.get(kljuc);
+        ctx.drawImage(keširanaSlika, image.x, image.y, image.width, image.height);
+    } else {
+        const novaSlika = new Image();
+        novaSlika.src = kljuc;
+
+        novaSlika.onload = () => {
+            KesiraneSlike.set(kljuc, novaSlika);
+            ctx.drawImage(novaSlika, image.x, image.y, image.width, image.height);
+        };
     }
+    
+}
+
+const endCanvas=canvasWidth-symWidth/2;
+let debljina = 2;
+let increase = true;
+
+function nacrtajLinije(startX , endX, y){
+    
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = debljina;
+    const startTime = performance.now();
+    const trajanjeAnimacije= 1800;
+
+    function crtaj(vreme){
+        const proteklo= vreme-startTime;
+
+         ctx.beginPath();
+        ctx.moveTo(startX, y);
+        ctx.lineTo(endX, y);
+        ctx.stroke();
+        ctx.moveTo(endX,y);
+        ctx.lineTo(endCanvas,y);
+        ctx.stroke();
+
+        if(proteklo<trajanjeAnimacije)
+        {
+            requestAnimationFrame(crtaj);
+        }
+        else{
+            ctx.clearRect(startX, y - ctx.lineWidth / 2, (endCanvas - startX), ctx.lineWidth);
+            for (let simbol of sviSimboli)
+            {
+                drawStaticLogo(simbol);
+            }
+        }
+
+    }
+
+    requestAnimationFrame(crtaj);
+    
+     
+    
+
+    // console.log("POZVANA FJA");
+}
+
+// function nacrtajLinije(startX, endX, y) {
+//     let debljina = 2;
+//     let increase = true;
+//     const trajanjeAnimacije = 1800;
+//     const startTime = performance.now();
+
+//     function animacijaLinije(vreme) {
+//         const proteklo = vreme - startTime;
+
+        
+//         ctx.clearRect(startX, y - 10, (endCanvas - startX), 20); // šire brišemo radi pulsa
+
+    
+//         ctx.beginPath();
+//         ctx.strokeStyle = "yellow";
+//         ctx.lineWidth = debljina;
+//         ctx.moveTo(startX, y);
+//         ctx.lineTo(endX, y);
+//         ctx.stroke();
+        
+//         ctx.moveTo(endX, y);
+//         ctx.lineTo(endCanvas, y);
+//         ctx.stroke();
+
+        
+//         if (increase) {
+//             debljina += 0.3;
+//             if (debljina >= 4) increase = false;
+//         } else {
+//             debljina -= 0.3;
+//             if (debljina <= 2) increase = true;
+//         }
+
+        
+    
+        
+//         if (proteklo < trajanjeAnimacije) {
+//             requestAnimationFrame(animacijaLinije);
+//         } else {
+//             // Očisti liniju kad animacija završi
+//             ctx.clearRect(startX, y - 10, (endCanvas - startX), 20);
+//             for (let simbol of sviSimboli) {
+//                 drawStaticLogo(simbol);
+//             }
+//         }
+//     }
+
+//     requestAnimationFrame(animacijaLinije);
+// }
+
+
+function crtajAX(){
+
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = debljina;
+    ctx.moveTo(0,125);
+    ctx.lineTo(200,125);
+    ctx.stroke();
+
+}
+
+function crtajSvesimbole(){
+
+    for (let simbol of sviSimboli)
+            {
+                drawStaticLogo(simbol);
+            }
+
 }
