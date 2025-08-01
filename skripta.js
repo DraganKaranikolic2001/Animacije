@@ -1,7 +1,8 @@
+
 const canvas= document.getElementById("canvas1");
 const ctx=canvas.getContext("2d");
-const canvasWidth= canvas.width;
-const canvasHeight= canvas.height;
+// let canvasWidth= canvas.width;
+// let canvasHeight= canvas.height;
 
 const AktivneAnimacije = new Map();
 
@@ -9,8 +10,8 @@ const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
-    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
+    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
+    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
     // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,width: 260, height: 260},
     // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,width: 260, height: 260},
@@ -35,14 +36,126 @@ dugme.addEventListener("click",()=>{drawSlot();});
 dugme2.addEventListener("click",()=>{Spoji();});
 dugme3.addEventListener("click",()=>{crtajAX();});
 
+function resize()
+{   
+    // const width = page.clientWidth;
+    // const height= page.clientHeight;
+    // // if (window.innerWidth <= 1537 && window.innerHeight <= 696) {
+    // //     canvas.style.width = (width*0.6)+"px";
+    // //     canvas.style.height = (width*0.4)+"px";
+    // //     canvas.style.left= "20%";
+
+    // // } else {
+    // //     canvas.style.width= (width*(0.64))+"px";
+    // //     canvas.style.height= (width*(0.72))+"px";
+    // //     canvas.style.left= "18%";
+    // // }
+    // canvas.style.height=(height*0.74) + "px";
+    // canvas.style.width=(width*0.64) + "px";
+    // canvas.style.left= "18%";
 
 
-const symWidth=50;
-const symHeight=50;  
+     // neka pocetna verzija doraditi 
+
+    const bg = document.querySelector(".fullscreen-bg");
+    const canvas = document.getElementById("canvas1");
+
+    const rect = bg.getBoundingClientRect();
+    
+
+    console.log("rectwidth : " + rect.width);
+    console.log("rectheight: " + rect.height);
+
+    // Procenti u odnosu na originalnu sliku (1366x768)
+    const dpr = window.devicePixelRatio || 1;
+    const topRatio = 73 / 768;
+   
+    const top = rect.height * topRatio;
+    
+    canvas.style.top = `${top}px`;
+    console.log("dpr : " +  dpr);
+    console.log("TOP postavljen na:", canvas.style.top);
+ 
+    if(dpr === 1.5){
+
+    const leftRatio = (250 / 1366);
+    const widthRatio = (580 / 1366);
+   
+    const heightRatio = (370 / 768);
+    
+    const left = rect.width * leftRatio;
+    const width = rect.width * widthRatio;
+    const height = rect.height * heightRatio;
+
+    canvas.style.left = `${left}px`;
+    const cssW    = rect.width * widthRatio;
+    const cssH    = rect.height * heightRatio;
+
+    console.log("left postavljen na:", left);
+    // console.log("Stvarna style.top:", canvas.style.top);
+    // console.log("canvas width : "  + canvas.width)
+
+
+    canvas.width = width;
+    canvas.height = height;
+    
+   
+  // Unutrašnja rezolucija (bafer)
+    canvas.width  = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    console.log("canvas width : "  + canvas.width)
+    console.log("canvas height : "  + canvas.height)
+    }
+    else{
+        
+    const widthRatio = (442 / 1366);
+    const leftRatio = (267 / 1366);
+    const heightRatio = (296 / 768);
+
+   
+    const width = rect.width * widthRatio;
+    const height = rect.height * heightRatio;
+    const left = rect.width * leftRatio;
+    
+    canvas.style.left = `${left}px`;
+    const cssW    = rect.width * widthRatio;
+    const cssH    = rect.height * heightRatio;
+     console.log("left postavljen na:", left);   
+    // console.log("Stvarna style.top:", canvas.style.top);
+    // console.log("canvas width : "  + canvas.width)
+
+   
+    canvas.width = width;
+    canvas.height = height;
+    
+    console.log("dpr : " +  dpr);
+  // Unutrašnja rezolucija (bafer)
+    canvas.width  = Math.round(cssW * dpr);
+    canvas.height = Math.round(cssH * dpr);
+    console.log("canvas width : "  + canvas.width)
+    console.log("canvas height : "  + canvas.height)
+    }
+    
+  // Skaliraj koordinate da 1 logical px ~ 1 CSS px
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function resizeAndLoadEvents(fns){
+    fns.forEach(fn=>{
+        window.addEventListener("resize",fn);
+        window.addEventListener("load",fn);
+    });
+}
+resizeAndLoadEvents([
+    resize
+]);
+
+
 
 let drawSymbols;
    let sviSimboli;
-
+let animacijaLoop= false;
 function drawSlot(){
     const rows=3;
     const cols=5;
@@ -55,10 +168,17 @@ function drawSlot(){
     }
     AktivneAnimacije.clear();
     
-    ctx.clearRect(0,0,canvasWidth,canvasHeight);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.fillRect(0,0,1,1);
-    
-   drawSymbols = [];
+    canvasWidth=canvas.width;
+    canvasHeight=canvas.height;
+    const offset = (canvasWidth / (window.devicePixelRatio || 1)) / 100;
+    const dpr = window.devicePixelRatio || 1;
+    let symWidth=(canvasWidth/5)/dpr-(4*offset);
+    let symHeight=(canvasHeight/3)/dpr-(2*offset);
+    console.log(symHeight);
+    console.log(symWidth);
+    drawSymbols = [];
    sviSimboli = [];
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
@@ -67,11 +187,25 @@ function drawSlot(){
             img.src=symbol.src;
             img.width=260;
             img.height=260;
-            const offset= canvasWidth/100;
+            const offset = (canvasWidth / (window.devicePixelRatio || 1)) / 100;
+            
+            let x;
+            let y;
+
+            console.log( "Sirina canvasa : " + canvasWidth);
+            console.log( "Visina canvasa : " + canvasHeight);
+            if(dpr===1.5){
+                 x= col * (symWidth+offset*4.2);
+                 y= row * (symHeight+offset*2);
+            }
+            else{
+                 x= col * (symWidth+offset*5);
+                 y= row * (symHeight+offset*2);
+            }
             
 
-            const x= col * (symWidth+offset*4);
-            const y= row * symHeight;
+            // console.log("x: " + x);
+            // console.log("y: " + y);
             drawSymbols.push({
                         id: symbol.id
 ,                       x: x,
@@ -104,6 +238,7 @@ function drawSlot(){
            
         }
     }
+    animacijaLoop=false;
     if (loopAnimacija) {
     clearTimeout(loopAnimacija);
     loopAnimacija = null;
@@ -114,7 +249,7 @@ function drawSlot(){
     },700);
     
 
-    //  console.log(drawSymbols);
+     console.log(drawSymbols);
 }
 
 let dobitneLinije=[];
@@ -175,11 +310,11 @@ function pokreniAnimacijuSvih(){
         let y= simbol.y;
         let yPoz= y+(simbol.height/2);
         startCanvasAnimation(1800,simbol);
-        nacrtajLinije(simbol.x,canvasWidth-simbol.width/2,yPoz);
+        // nacrtajLinije(simbol.x,canvasWidth-simbol.width/2,yPoz,dobitneLinije);
     }
     setTimeout(()=>{
             pokreniAnimLoop();
-    },3000);
+    },2600);
 }
 
 function pokreniAnimLoop() {
@@ -188,6 +323,7 @@ function pokreniAnimLoop() {
     //     loopAnimacija = null;
     // }
     // Grupisanje simbola po y vrednosti
+    animacijaLoop=true;
     const grupePoY = {}; // pravimo dictionary za sortiranje po y vrednosti
 
     for (let simbol of dobitneLinije) {
@@ -209,8 +345,8 @@ function pokreniAnimLoop() {
     let indeks = 0;
 
     function animirajSledecuGrupu() {
-        if (indeks >= yRedosled.length) return;
-
+        
+          if (!animacijaLoop || yRedosled.length === 0) return;
         const y = yRedosled[indeks];
         const grupa = grupePoY[y];
 
@@ -220,11 +356,16 @@ function pokreniAnimLoop() {
         let startX= grupa[0].x; //prva x koordinata
         let endX=grupa[duzina-1].x; // kranja xx koordinata
         let yPoz = y+(grupa[0].height)/2; // sredina y svakog reda za crtanje linije
-        console.log("y : " + y);
-        console.log("yPoz : " + yPoz); 
-        console.log("start x" + startX);
-        console.log("end x" + endX);
-        console.log("ovo je i !!! : " +  i);
+        // console.log("y : " + y);
+        // console.log("yPoz : " + yPoz); 
+        // console.log("start x" + startX);
+        // console.log("end x" + endX);
+        // console.log("ovo je i !!! : " +  i);
+
+        // console.log(ctx.lineWidth);
+        
+      
+        
         // console.log("Y: " + y);
         // console.log("Grupa: " + grupa);
 
@@ -234,10 +375,10 @@ function pokreniAnimLoop() {
             i++;
         }
         
-        nacrtajLinije(startX,endX,yPoz);
+        // nacrtajLinije(startX,endX,yPoz,grupa);
         
-        indeks++;
-        loopAnimacija=setTimeout(animirajSledecuGrupu, 2200); // rekurzivni poziv fje da animira sve ostale grupe po vrednoscu Y 
+        indeks = (indeks + 1) % yRedosled.length;
+        loopAnimacija=setTimeout(animirajSledecuGrupu, 2600); // rekurzivni poziv fje da animira sve ostale grupe po vrednoscu Y 
     }
 
     animirajSledecuGrupu(); // pokreni prvu grupu
@@ -245,34 +386,8 @@ function pokreniAnimLoop() {
 
 
 
-function resize()
-{   
-    const width = page.clientWidth;
-    const height= page.clientHeight;
-    if (window.innerWidth <= 1537 && window.innerHeight <= 696) {
-        canvas.style.width = (width*0.6)+"px";
-        canvas.style.height = (height*0.72)+"px";
-        canvas.style.left= "20%";
 
-    } else {
-        canvas.style.width= (width*(0.64))+"px";
-        canvas.style.height= (height*(0.72))+"px";
-        canvas.style.left= "18%";
-    }
-    
-}
-
-function resizeAndLoadEvents(fns){
-    fns.forEach(fn=>{
-        window.addEventListener("resize",fn);
-        window.addEventListener("load",fn);
-    });
-}
-resizeAndLoadEvents([
-    resize
-]);
-
-const frameInterval = 1000/45;
+const frameInterval = 1000/30;
 
 function startCanvasAnimation(duration,symbolObj){
     // console.log(symbolObj);
@@ -304,6 +419,7 @@ function startCanvasAnimation(duration,symbolObj){
             cancelAnimationFrame(symbolObj._animationID);
         }
         drawStaticLogo(symbolObj);
+        AktivneAnimacije.delete(key);
     },duration);
 }   
 
@@ -330,6 +446,8 @@ function createAnimation(image,symbolData){
             diff=timmy-number;
             number=timmy;
         }
+       diff = Math.max(10, Math.min(diff, 40));
+        
         const SpriteWidth=image.width;
         const SpriteHeight= (image.height/24);
 
@@ -343,7 +461,8 @@ function createAnimation(image,symbolData){
         frameTimer+=diff;
         if(frameTimer>=frameInterval){
             frameRate=(frameRate+1)%24;
-            frameTimer=0;
+            frameTimer-=frameInterval;
+            // console.log("frameRate:", frameRate);
         }
         ctx.drawImage(image,0,frameRate*SpriteHeight,SpriteWidth,SpriteHeight,symbolData.x,symbolData.y,symbolData.width,symbolData.height);
 
@@ -375,19 +494,19 @@ function drawStaticLogo(image){
     
 }
 
-const endCanvas=canvasWidth-symWidth/2;
+// const endCanvas=(canvas.width)-symWidth/2;
 let debljina = 2;
 let increase = true;
 
-function nacrtajLinije(startX , endX, y){
+function nacrtajLinije(startX , endX, y, grupa){
     
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = debljina;
-    const startTime = performance.now();
-    const trajanjeAnimacije= 1800;
+    // const startTime = performance.now();
+    // const trajanjeAnimacije= 1800;
 
-    function crtaj(vreme){
-        const proteklo= vreme-startTime;
+    function crtaj(){
+        // const proteklo= vreme-startTime;
 
          ctx.beginPath();
         ctx.moveTo(startX, y);
@@ -397,18 +516,17 @@ function nacrtajLinije(startX , endX, y){
         ctx.lineTo(endCanvas,y);
         ctx.stroke();
 
-        if(proteklo<trajanjeAnimacije)
-        {
+        const sveZavrsene = grupa.every(simbol => !simbol._isRunning);
+
+        if (sveZavrsene) {
+            ctx.clearRect(startX, y - ctx.lineWidth / 2, (endCanvas - startX), ctx.lineWidth);
+
+            for (let simbol of sviSimboli) {
+                if (!simbol._isRunning) drawStaticLogo(simbol);
+            }
+        } else {
             requestAnimationFrame(crtaj);
         }
-        else{
-            ctx.clearRect(startX, y - ctx.lineWidth / 2, (endCanvas - startX), ctx.lineWidth);
-            for (let simbol of sviSimboli)
-            {
-                drawStaticLogo(simbol);
-            }
-        }
-
     }
 
     requestAnimationFrame(crtaj);
@@ -470,21 +588,28 @@ function nacrtajLinije(startX , endX, y){
 // }
 
 
-function crtajAX(){
+// function crtajAX(){
 
-    ctx.strokeStyle = "yellow";
-    ctx.lineWidth = debljina;
-    ctx.moveTo(0,125);
-    ctx.lineTo(200,125);
-    ctx.stroke();
+//     ctx.strokeStyle = "yellow";
+//     ctx.lineWidth = debljina;
+//     ctx.moveTo(0,125);
+//     ctx.lineTo(200,125);
+//     ctx.stroke();
 
-}
+// }
 
-function crtajSvesimbole(){
+// function crtajSvesimbole(){
 
-    for (let simbol of sviSimboli)
-            {
-                drawStaticLogo(simbol);
-            }
+//     for (let simbol of sviSimboli)
+//             {
+//                 drawStaticLogo(simbol);
+//             }
 
-}
+// }
+
+
+//canvas uvek da prati reelove, nakon sto bude pratio reelove racunacu 
+// fja window.devicePixelRatio istraziti preko nje cu namestiti canvasa njima je zakucana 1.5
+
+// dinamcki 16:9 za canvas ,  da se ne brisu simboli kad se resizuje , linije animacija kad treba 
+// start , autoplay i ostale dugmice iz UI dodati 

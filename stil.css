@@ -43,13 +43,8 @@ html, body {
     top: 58%;
 } */
 canvas{
-    
-    width: auto;
-    height: auto;
     position: absolute;
-    top: 9.5%;
-    left: 18%;
-    
+    pointer-events: none;
 }
 img{
     object-fit: contain;
