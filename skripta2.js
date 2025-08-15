@@ -6,11 +6,16 @@
 
 const AktivneAnimacije = new Map();
 
+// [DODATO] Globalni ID spina i set za tajmere
+let currentSpinId = 0;
+const pendingTimers = new Set();
+
+
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
+    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
     // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
     // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,width: 260, height: 260},
@@ -31,6 +36,7 @@ const symbols = [
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
+
 dugme.addEventListener("click",()=>{drawSlot();});
 dugme2.addEventListener("click",()=>{Spoji();});
 
@@ -103,9 +109,14 @@ resizeAndLoadEvents([
 
 
 let drawSymbols;
-   let sviSimboli;
+let sviSimboli;
 let animacijaLoop= false;
 function drawSlot(){
+    // [DODATO] Novi spin: invalidiraj sve prethodne callback-ove
+    currentSpinId++;
+    for (const t of pendingTimers) clearTimeout(t);
+    pendingTimers.clear();
+
     const rows=3;
     const cols=5;
 
@@ -150,7 +161,9 @@ function drawSlot(){
                         width: symWidth,
                         height: symHeight,
                         _isRunning: false,
-                        _animationID : null
+                        _animationID : null,
+                        _timeoutId: null,
+                        _spinId: currentSpinId // [DODATO] vezivanje za aktivni spin
                     });
 
             sviSimboli.push({
@@ -162,7 +175,9 @@ function drawSlot(){
                         width: symWidth,
                         height: symHeight,
                         _isRunning: false,
-                        _animationID : null
+                        _animationID : null,
+                        _timeoutId: null,
+                        _spinId: currentSpinId // [DODATO] vezivanje za aktivni spin
                     });                    
 
             img.onload= function(){
@@ -322,128 +337,151 @@ function pokreniAnimLoop() {
 }
 
 
-
+// function Auto(){
+//     drawSlot();
+//     Spoji()
+//     pokreniAnimacijuSvih();
+//     animirajSledecuGrupu();
+// }
 
 const frameInterval = 1000/30;
 
+
 function startCanvasAnimation(duration,symbolObj){
-    // console.log(symbolObj);
-     if (!symbolObj || !symbolObj.src) return;
-    // console.log("Pozvana startCanvas");
-    if(symbolObj._isRunning) return;
-    //Kontrola da ne dodje do poklapanja animacija 
+    if (!symbolObj || !symbolObj.src) return;
+
+    const mySpin = symbolObj._spinId || currentSpinId; // [DODATO] vezivanje na spin
+    if (mySpin !== currentSpinId) return;
+
+    if (symbolObj._isRunning) return;
+
+    // [DODATO] Anti-overlap na istom polju
     const key = `${symbolObj.x}_${symbolObj.y}`;
     const now = Date.now();
-    if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 100) return;
+    if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 80) return;
     AktivneAnimacije.set(key, now);
-    //
-    if(symbolObj._animationID){
+
+    if (symbolObj._animationID) {
         cancelAnimationFrame(symbolObj._animationID);
-        symbolObj._isRunning=false;
+        symbolObj._animationID = null;
     }
 
     const spriteImage = new Image();
-    spriteImage.src=symbolObj.src;
-    // console.log(spriteImage);
-    symbolObj._isRunning=true;
+    spriteImage.src = symbolObj.src;
+
+    symbolObj._isRunning = true;
+
     spriteImage.onload = () => {
-        const animationFunction = createAnimation(spriteImage,symbolObj);
-        symbolObj._animationID=requestAnimationFrame(animationFunction);
+        if (mySpin !== currentSpinId || !symbolObj._isRunning) return;
+        const animationFunction = createAnimation(spriteImage, symbolObj, mySpin);
+        symbolObj._animationID = requestAnimationFrame(animationFunction);
+    };
+
+    // [DODATO] Ako je već keširano
+    if (spriteImage.complete) {
+        spriteImage.onload();
     }
-    setTimeout(()=>{
-        symbolObj._isRunning=false;
-        if(symbolObj._animationID){
-            cancelAnimationFrame(symbolObj._animationID);
-        }
+
+    const tid = setTimeout(() => {
+        if (mySpin !== currentSpinId) return;
+        symbolObj._isRunning = false;
+        if (symbolObj._animationID) cancelAnimationFrame(symbolObj._animationID);
         drawStaticLogo(symbolObj);
         AktivneAnimacije.delete(key);
-    },duration);
-}   
+    }, duration);
+    symbolObj._timeoutId = tid;
+    pendingTimers.add(tid);
+}
+   
 
-function createAnimation(image,symbolData){
 
+function createAnimation(image, symbolData, mySpin){
     let frameRate = 0;
     let number = 0;
-    let diff=0;
+    let diff = 0;
     let frameTimer = 0;
-    // console.log("Pozvana createAnimation");
-
-
     let firstCall = true;
-    return function animate(timmy){    
-        // console.log(symbolData);
-         if (!symbolData._isRunning) return;
 
-        if(firstCall){
-            number=timmy;
-            firstCall=false;
-        }
-        
-        if(timmy){
-            diff=timmy-number;
-            number=timmy;
-        }
-       diff = Math.max(10, Math.min(diff, 40));
-        
-        const SpriteWidth=image.width;
-        const SpriteHeight= (image.height/24);
+    return function animate(timmy){
+        if (mySpin !== currentSpinId || !symbolData._isRunning) return;
 
-       if (frameRate === 0 && frameTimer === 0) {
-        console.log("Diff: " + diff);
+        if (firstCall){
+            number = timmy || 0;
+            firstCall = false;
         }
+        if (typeof timmy === "number"){
+            diff = timmy - number;
+            number = timmy;
+        }
+        // clamp diff to avoid jumps
+        if (!(diff > 0 && diff < 100)) diff = 16;
+
+        const SpriteWidth = image.width;
+        const SpriteHeight = (image.height / 24);
+
+        // očisti isključivo region simbola
         ctx.clearRect(symbolData.x, symbolData.y, symbolData.width, symbolData.height);
 
-        // ctx.fillRect(0,0,1,1);
-
-        frameTimer+=diff;
-        if(frameTimer>=frameInterval){
-            frameRate=(frameRate+1)%24;
-            frameTimer-=frameInterval;
-            // console.log("frameRate:", frameRate);
+        frameTimer += diff;
+        if (frameTimer >= 1000/30) {
+            frameRate = (frameRate + 1) % 24;
+            frameTimer -= 1000/30;
         }
-        ctx.drawImage(image,0,frameRate*SpriteHeight,SpriteWidth,SpriteHeight,symbolData.x,symbolData.y,symbolData.width,symbolData.height);
+
+        ctx.drawImage(image, 0, frameRate * SpriteHeight, SpriteWidth, SpriteHeight,
+                      symbolData.x, symbolData.y, symbolData.width, symbolData.height);
 
         symbolData._animationID = requestAnimationFrame(animate);
-
     }
 }
 
+
  const KesiraneSlike = new Map(); 
 
+
 function drawStaticLogo(image){
-    // console.log("Pozvana Static");
+    if (image && image._spinId !== undefined && image._spinId !== currentSpinId) return; // [DODATO]
     ctx.clearRect(image.x, image.y, image.width, image.height);
 
     const kljuc = image.srcStatic;
 
     if (KesiraneSlike.has(kljuc)) {
-        const keširanaSlika = KesiraneSlike.get(kljuc);
-        ctx.drawImage(keširanaSlika, image.x, image.y, image.width, image.height);
+        const k = KesiraneSlike.get(kljuc);
+        if (image._spinId !== currentSpinId) return;
+        ctx.drawImage(k, image.x, image.y, image.width, image.height);
     } else {
         const novaSlika = new Image();
         novaSlika.src = kljuc;
 
         novaSlika.onload = () => {
+            if (image._spinId !== currentSpinId) return;
             KesiraneSlike.set(kljuc, novaSlika);
             ctx.drawImage(novaSlika, image.x, image.y, image.width, image.height);
         };
+        if (novaSlika.complete) {
+            if (image._spinId !== currentSpinId) return;
+            KesiraneSlike.set(kljuc, novaSlika);
+            ctx.drawImage(novaSlika, image.x, image.y, image.width, image.height);
+        }
     }
-    
 }
+
 
 let debljina = 2;
 let increase = true;
 
+
 function nacrtajLinije(startX , endX, y, grupa){
-    const cssW = canvas.clientWidth;                 // <- CSS širina
+    const mySpin = currentSpinId; // [DODATO]
+    const cssW = canvas.clientWidth;
     const endX2 = cssW - grupa[0].width / 2;
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = debljina;
-    
+
     function crtaj(){
-        // const proteklo= vreme-startTime;
-      
-         ctx.beginPath();
+        if (mySpin !== currentSpinId) return;
+
+        ctx.beginPath();
         ctx.moveTo(startX, y);
         ctx.lineTo(endX, y);
         ctx.stroke();
@@ -451,32 +489,23 @@ function nacrtajLinije(startX , endX, y, grupa){
         ctx.lineTo(endX2,y);
         ctx.stroke();
 
-        const sveZavrsene = grupa.every(simbol => !simbol._isRunning);
+        const sveZavrsene = grupa.every(simbol => !simbol._isRunning || simbol._spinId !== mySpin);
 
         if (sveZavrsene) {
-             const pad = 2; // malo šire brišemo
-            ctx.clearRect(
-                Math.floor(startX) ,
-                Math.floor(y - ctx.lineWidth / 2) ,
-                Math.ceil(endX2 - startX) + pad ,
-                Math.ceil(ctx.lineWidth) + pad 
-            );
+            const pad = 2;
+            ctx.clearRect(Math.floor(startX), Math.floor(y - ctx.lineWidth / 2),
+                          Math.ceil(endX2 - startX) + pad, Math.ceil(ctx.lineWidth) + pad);
 
             for (let simbol of sviSimboli) {
-                if (!simbol._isRunning) drawStaticLogo(simbol);
+                if (simbol._spinId === mySpin && !simbol._isRunning) drawStaticLogo(simbol);
             }
         } else {
             requestAnimationFrame(crtaj);
         }
     }
-
     requestAnimationFrame(crtaj);
-    
-     
-    
-
-    // console.log("POZVANA FJA");
 }
+
 
 // function nacrtajLinije(startX, endX, y) {
 //     let debljina = 2;
