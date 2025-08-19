@@ -37,6 +37,7 @@ img{
 .info{
     position: absolute;
     bottom: 0;
+    height: 10%;
     width: 100%;
     background-color: transparent;
     display: flex;
@@ -48,9 +49,18 @@ img{
     background-color: yellow;
     border: none;
     border-radius: 2vh;
-    width: 10%;
+    width: 8%;
+    height: 50%;
     margin: 1%;
-    margin-bottom: 2%;
-    
+    margin-bottom: 1%;
+    min-width: 30px;
+    min-height: 30px;
+    font-size: clamp(10px,2vw,28px);
+    cursor: pointer;
+}
+.flex-center{
+    display: flex;
+    justify-content:center;
+    align-items: center;
 }
 

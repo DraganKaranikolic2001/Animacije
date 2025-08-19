@@ -14,7 +14,7 @@ const pendingTimers = new Set();
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
-    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
     // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
     // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
@@ -31,14 +31,11 @@ const symbols = [
 }
 
 
-
-
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
 
 dugme.addEventListener("click",()=>{drawSlot();});
-dugme2.addEventListener("click",()=>{Spoji();});
 
 
 const canvas = document.getElementById("canvas1");
@@ -55,11 +52,18 @@ function resize() {
   // 2) Koordinate “reels” okvira unutar te slike (u pikselima fajla)
   // OVO SU TVOJE VREDNOSTI IZ RANIJE VERZIJE:
   const REELS = {
-    left: 175,
-    top:  75,
+    left: 168,
+    top:  68,
     width: 1035,
-    height: 570
+    height: 565
   };
+
+  const PANEL = {
+    left : 0,
+    top: 670,
+    width: 1365,
+    height: 100
+  }
 
   // 3) Koliko je slika zaista velika na ekranu (object-fit: contain)
   const contW = container.clientWidth;
@@ -92,8 +96,18 @@ function resize() {
 
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
 
+  const info = document.querySelector(".info");
+  const pLeft   = offX + PANEL.left   * scale;
+  const pTop    = offY + PANEL.top    * scale;
+  const pWidth  = PANEL.width  * scale;
+  const pHeight = PANEL.height * scale;
+
+  info.style.left   = pLeft + "px";
+  info.style.top    = pTop + "px";
+  info.style.width  = pWidth + "px";
+  info.style.height = pHeight + "px";
+}
 
 function resizeAndLoadEvents(fns){
     fns.forEach(fn=>{
@@ -105,8 +119,6 @@ resizeAndLoadEvents([
     resize,
     
 ]);
-
-
 
 let drawSymbols;
 let sviSimboli;
@@ -136,23 +148,32 @@ function drawSlot(){
     let symWidth  = (cssW / 5) - (4 * offset);
     let symHeight = (cssH / 3) - (2 * offset);
     // console.log(symHeight);
-    console.log("Sirina canvasa" + canvas.width);
-    console.log(symWidth);
+    // console.log("Sirina canvasa" + canvas.width);
+    // console.log(symWidth);
     drawSymbols = [];
-   sviSimboli = [];
+    sviSimboli = [];
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
             const symbol=generateSymbol();
             const img= new Image();
             img.src=symbol.src;
-            img.width=260;
-            img.height=260;
+            
             let x;
             let y;
-             x= col * (symWidth+offset*4.2);
-             y= row * (symHeight+offset*2);
-           
-            drawSymbols.push({
+
+            const Column_fact = [null,5.5,4.8,4.7,4.6] 
+            
+            x= (col==0)
+                ? offset
+                : col*(symWidth+offset*(Column_fact[col] ?? 4.7))
+            if(row==0)
+                y=offset;
+            else{
+                y= row * (symHeight+offset*2.5);
+
+
+            }
+                        drawSymbols.push({
                         id: symbol.id
 ,                       x: x,
                         y: y,
@@ -197,9 +218,7 @@ function drawSlot(){
     setTimeout(()=>{
         Spoji();
     },700);
-    
-
-     console.log(drawSymbols);
+    //  console.log(drawSymbols);
 }
 
 let dobitneLinije=[];
@@ -237,7 +256,7 @@ function Spoji(){
                 // console.log("prom kroz while: " + prom);
             }
 
-            console.log(dobitneLinije);
+            // console.log(dobitneLinije);
 
             if(dobitneLinije.length>0)
             {
@@ -245,7 +264,7 @@ function Spoji(){
             }  
         }
         else{
-            console.log("nema nista");
+            // console.log("nema nista");
         }
   
     }
@@ -336,17 +355,6 @@ function pokreniAnimLoop() {
     animirajSledecuGrupu(); // pokreni prvu grupu
 }
 
-
-// function Auto(){
-//     drawSlot();
-//     Spoji()
-//     pokreniAnimacijuSvih();
-//     animirajSledecuGrupu();
-// }
-
-const frameInterval = 1000/30;
-
-
 function startCanvasAnimation(duration,symbolObj){
     if (!symbolObj || !symbolObj.src) return;
 
@@ -388,13 +396,13 @@ function startCanvasAnimation(duration,symbolObj){
         if (symbolObj._animationID) cancelAnimationFrame(symbolObj._animationID);
         drawStaticLogo(symbolObj);
         AktivneAnimacije.delete(key);
+        // pendingTimers.delete(tid); ovo dodajemo ako koristimo stopandFreezeAnimation()
     }, duration);
     symbolObj._timeoutId = tid;
     pendingTimers.add(tid);
 }
    
-
-
+const frameInterval = 1000/30;
 function createAnimation(image, symbolData, mySpin){
     let frameRate = 0;
     let number = 0;
@@ -409,12 +417,12 @@ function createAnimation(image, symbolData, mySpin){
             number = timmy || 0;
             firstCall = false;
         }
-        if (typeof timmy === "number"){
+        if (timmy){
             diff = timmy - number;
             number = timmy;
         }
         // clamp diff to avoid jumps
-        if (!(diff > 0 && diff < 100)) diff = 16;
+        if (!(diff > 0 && diff < 100)) diff = 30;
 
         const SpriteWidth = image.width;
         const SpriteHeight = (image.height / 24);
@@ -435,10 +443,7 @@ function createAnimation(image, symbolData, mySpin){
     }
 }
 
-
- const KesiraneSlike = new Map(); 
-
-
+const KesiraneSlike = new Map(); 
 function drawStaticLogo(image){
     if (image && image._spinId !== undefined && image._spinId !== currentSpinId) return; // [DODATO]
     ctx.clearRect(image.x, image.y, image.width, image.height);
@@ -469,8 +474,6 @@ function drawStaticLogo(image){
 
 let debljina = 2;
 let increase = true;
-
-
 function nacrtajLinije(startX , endX, y, grupa){
     const mySpin = currentSpinId; // [DODATO]
     const cssW = canvas.clientWidth;
@@ -493,8 +496,8 @@ function nacrtajLinije(startX , endX, y, grupa){
 
         if (sveZavrsene) {
             const pad = 2;
-            ctx.clearRect(Math.floor(startX), Math.floor(y - ctx.lineWidth / 2),
-                          Math.ceil(endX2 - startX) + pad, Math.ceil(ctx.lineWidth) + pad);
+            ctx.clearRect(Math.floor(startX), Math.floor((y - ctx.lineWidth / 2) -1 ),
+                          Math.ceil(endX2 - startX) + pad*2, Math.ceil(ctx.lineWidth) + pad*2);
 
             for (let simbol of sviSimboli) {
                 if (simbol._spinId === mySpin && !simbol._isRunning) drawStaticLogo(simbol);
@@ -505,81 +508,86 @@ function nacrtajLinije(startX , endX, y, grupa){
     }
     requestAnimationFrame(crtaj);
 }
+let trigger=false;
+let timer = null;
 
+dugme2.addEventListener('click',()=>{
+    if(trigger){
+            trigger=false;
+            clearTimeout(timer);
+            timer=null;
+        // stopAllAnimationsAndFreeze();
+    }
+    else{
+        trigger=true;
+        Auto();
+    }
+});
 
-// function nacrtajLinije(startX, endX, y) {
-//     let debljina = 2;
-//     let increase = true;
-//     const trajanjeAnimacije = 1800;
-//     const startTime = performance.now();
-
-//     function animacijaLinije(vreme) {
-//         const proteklo = vreme - startTime;
-
-        
-//         ctx.clearRect(startX, y - 10, (endCanvas - startX), 20); // šire brišemo radi pulsa
-
+function Auto(){
+    if(!trigger) return;
+    drawSlot();
     
-//         ctx.beginPath();
-//         ctx.strokeStyle = "yellow";
-//         ctx.lineWidth = debljina;
-//         ctx.moveTo(startX, y);
-//         ctx.lineTo(endX, y);
-//         ctx.stroke();
-        
-//         ctx.moveTo(endX, y);
-//         ctx.lineTo(endCanvas, y);
-//         ctx.stroke();
-
-        
-//         if (increase) {
-//             debljina += 0.3;
-//             if (debljina >= 4) increase = false;
-//         } else {
-//             debljina -= 0.3;
-//             if (debljina <= 2) increase = true;
-//         }
-
-        
+    setTimeout(() => {
+        const n = dobitneLinije.length; // sada je realna dužina
+        console.log("Dužina dobitneLinije:", n);
+        console.log("Aktivne animacije " + AktivneAnimacije);
+        if (n < 5 && n>0) {
+            timer = setTimeout(Auto, 5000);
+            console.log("Ima 1 linija");
+        } else if (n > 5 && n < 10) {
+            timer = setTimeout(Auto, 7300);
+            console.log("Ima 2 linije");
+        } else if (n > 10) {
+            timer = setTimeout(Auto, 10200);
+            console.log("Ima 3 linije");
+        } else {
+            timer = setTimeout(Auto, 1000);
+            console.log("Nema linije");
+        }
+    }, 800);
     
-        
-//         if (proteklo < trajanjeAnimacije) {
-//             requestAnimationFrame(animacijaLinije);
-//         } else {
-//             // Očisti liniju kad animacija završi
-//             ctx.clearRect(startX, y - 10, (endCanvas - startX), 20);
-//             for (let simbol of sviSimboli) {
-//                 drawStaticLogo(simbol);
-//             }
-//         }
-//     }
-
-//     requestAnimationFrame(animacijaLinije);
-// }
-
-
-// function crtajAX(){
-
-//     ctx.strokeStyle = "yellow";
-//     ctx.lineWidth = debljina;
-//     ctx.moveTo(0,125);
-//     ctx.lineTo(200,125);
-//     ctx.stroke();
-
-// }
-
-// function crtajSvesimbole(){
-
-//     for (let simbol of sviSimboli)
-//             {
-//                 drawStaticLogo(simbol);
-//             }
-
-// }
-
+}
 
 //canvas uvek da prati reelove, nakon sto bude pratio reelove racunacu 
-// fja window.devicePixelRatio istraziti preko nje cu namestiti canvasa njima je zakucana 1.5
 
 // dinamcki 16:9 za canvas ,  da se ne brisu simboli kad se resizuje , linije animacija kad treba 
 // start , autoplay i ostale dugmice iz UI dodati 
+
+
+
+
+
+
+// [DODATO] Prekini SVE animacije i ostavi statičnu sliku
+
+// function stopAllAnimationsAndFreeze() {
+//   // 1) Zaustavi Auto petlju i grupne loop-ove
+//   trigger = false;
+//   if (timer) { clearTimeout(timer); timer = null; }
+//   animacijaLoop = false;
+//   if (loopAnimacija) { clearTimeout(loopAnimacija); loopAnimacija = null; }
+
+//   // 2) Prekini sve pending setTimeout-ove iz animacija
+//   for (const t of pendingTimers) clearTimeout(t);
+//   pendingTimers.clear();
+
+//   // 3) Prekini sve rAF animacije po simbolima
+//   if (drawSymbols && Array.isArray(drawSymbols)) {
+//     for (const simbol of drawSymbols) {
+//       simbol._isRunning = false;
+//       if (simbol._animationID) {
+//         cancelAnimationFrame(simbol._animationID);
+//         simbol._animationID = null;
+//       }
+//     }
+//   }
+//   AktivneAnimacije.clear();
+
+//   // 4) Zacrataj statične slike preko svih trenutnih simbola
+//   if (drawSymbols && Array.isArray(drawSymbols)) {
+//     for (const simbol of drawSymbols) {
+//       drawStaticLogo(simbol); // koristi postojeću funkciju
+//     }
+//   }
+// }
