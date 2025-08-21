@@ -1,22 +1,15 @@
-
-// const canvas= document.getElementById("canvas1");
-// const ctx=canvas.getContext("2d");
-// let canvasWidth= canvas.width;
-// let canvasHeight= canvas.height;
-
 const AktivneAnimacije = new Map();
-
-// [DODATO] Globalni ID spina i set za tajmere
+//Globalni ID spina i set za tajmere
 let currentSpinId = 0;
 const pendingTimers = new Set();
 
 
 const symbols = [
-    // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
+    { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
-    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
-    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
+    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
+    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
     // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,width: 260, height: 260},
     // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,width: 260, height: 260},
@@ -37,6 +30,21 @@ const dugme2 = document.getElementById("button2");
 
 dugme.addEventListener("click",()=>{drawSlot();});
 
+document.addEventListener('keydown', function(event){
+    if(event.code==="Space")
+        drawSlot()
+})
+
+
+const fullBtn = document.getElementById("fullscreenBtn");
+fullBtn.addEventListener("click", () => {
+    if(!document.fullscreenElement){
+        page.requestFullscreen();
+    }
+    else{
+        document.exitFullscreen();
+    }    
+})
 
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
@@ -45,12 +53,12 @@ function resize() {
   const container = document.getElementById("main-container");
   const dpr = window.devicePixelRatio || 1;
 
-  // Dimenzije pozadinske slike (pikseli fajla)
+  // Dimenzije pozadinske slike 
   const DESIGN_W = 1366;
   const DESIGN_H = 768;
 
   // 2) Koordinate “reels” okvira unutar te slike (u pikselima fajla)
-  // OVO SU TVOJE VREDNOSTI IZ RANIJE VERZIJE:
+  
   const REELS = {
     left: 168,
     top:  68,
@@ -65,7 +73,7 @@ function resize() {
     height: 100
   }
 
-  // 3) Koliko je slika zaista velika na ekranu (object-fit: contain)
+  // 3) Koliko je slika zaista velika na ekranu 
   const contW = container.clientWidth;
   const contH = container.clientHeight;
 
@@ -73,7 +81,7 @@ function resize() {
   const renderedW = DESIGN_W * scale;
   const renderedH = DESIGN_H * scale;
 
-  // “Letterbox” ofseti (crne trake)
+  // “Letterbox” ofseti 
   const offX = (contW - renderedW) * 0.5;
   const offY = (contH - renderedH) * 0.5;
 
@@ -109,6 +117,29 @@ function resize() {
   info.style.height = pHeight + "px";
 }
 
+function rescaleAndreDraw(){
+    if(!drawSymbols || drawSymbols.length===0) return;
+
+    stopAllAnimationsAndFreeze(); // prekid svih animacija da ne bi se videli pri resizu window-a
+
+    const cssW= canvas.clientWidth;
+    const cssH= canvas.clientHeight;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    for (const s of drawSymbols){
+        if(s._spinId!== currentSpinId) return;
+
+        s.x=s.nx*cssW; // vracanje u normalnih koordinata radi iscrtavanja simbola 
+        s.y=s.ny*cssH;
+        s.width=s.nw*cssW;
+        s.height=s.nh*cssH;
+
+        drawStaticLogo(s);
+    }
+    dugme2.classList.remove("active");
+}
+
 function resizeAndLoadEvents(fns){
     fns.forEach(fn=>{
         window.addEventListener("resize",fn);
@@ -117,6 +148,7 @@ function resizeAndLoadEvents(fns){
 }
 resizeAndLoadEvents([
     resize,
+    rescaleAndreDraw
     
 ]);
 
@@ -170,13 +202,20 @@ function drawSlot(){
                 y=offset;
             else{
                 y= row * (symHeight+offset*2.5);
-
-
             }
+            //Pamcenje css piksela za kasnije resize za simbole 
+            const nx= x/cssW;
+            const ny= y/cssH;
+            const nw=symWidth/cssW;
+            const nh= symHeight/cssH;
                         drawSymbols.push({
                         id: symbol.id
 ,                       x: x,
                         y: y,
+                        nx: nx,
+                        ny : ny,
+                        nw: nw,
+                        nh : nh,
                         src: symbol.srcSprite,
                         srcStatic : symbol.src,
                         width: symWidth,
@@ -184,13 +223,17 @@ function drawSlot(){
                         _isRunning: false,
                         _animationID : null,
                         _timeoutId: null,
-                        _spinId: currentSpinId // [DODATO] vezivanje za aktivni spin
+                        _spinId: currentSpinId //vezivanje za aktivni spin
                     });
 
             sviSimboli.push({
                         id: symbol.id
 ,                       x: x,
                         y: y,
+                        nx: nx,
+                        ny : ny,
+                        nw: nw,
+                        nh : nh,
                         src: symbol.srcSprite,
                         srcStatic : symbol.src,
                         width: symWidth,
@@ -198,7 +241,7 @@ function drawSlot(){
                         _isRunning: false,
                         _animationID : null,
                         _timeoutId: null,
-                        _spinId: currentSpinId // [DODATO] vezivanje za aktivni spin
+                        _spinId: currentSpinId 
                     });                    
 
             img.onload= function(){
@@ -356,19 +399,21 @@ function pokreniAnimLoop() {
 }
 
 function startCanvasAnimation(duration,symbolObj){
+    //Provera da li ima simbola ili putanje do slike 
     if (!symbolObj || !symbolObj.src) return;
-
+    //Provera spina, tacnije da li je animaciju u tom spinu ukoliko nije tacnije ako je kreiran novi niz elementa povecava se broj tr. spina i ne dozvoljava se animacija 
     const mySpin = symbolObj._spinId || currentSpinId; // [DODATO] vezivanje na spin
     if (mySpin !== currentSpinId) return;
-
+    //Ako je simbol vec u animaciji 
     if (symbolObj._isRunning) return;
 
     // [DODATO] Anti-overlap na istom polju
-    const key = `${symbolObj.x}_${symbolObj.y}`;
-    const now = Date.now();
-    if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 80) return;
-    AktivneAnimacije.set(key, now);
+    const key = `${symbolObj.x}_${symbolObj.y}`; //pravljenje kljuca za svaki simbol na reelovima
+    const now = performance.now();
+    if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 80) return; //provera da li je proslo 80ms izmedju animacija da se ne bi preklopile 
+    AktivneAnimacije.set(key, now); //ako nisu dodaj u mapu kljuc i trenutak animacije 
 
+    //Osigurava da se ugasi prethodni loop animacija ukoliko su neke ostale aktivne 
     if (symbolObj._animationID) {
         cancelAnimationFrame(symbolObj._animationID);
         symbolObj._animationID = null;
@@ -378,25 +423,25 @@ function startCanvasAnimation(duration,symbolObj){
     spriteImage.src = symbolObj.src;
 
     symbolObj._isRunning = true;
-
+    //Pokretanje animacija 
     spriteImage.onload = () => {
         if (mySpin !== currentSpinId || !symbolObj._isRunning) return;
         const animationFunction = createAnimation(spriteImage, symbolObj, mySpin);
         symbolObj._animationID = requestAnimationFrame(animationFunction);
     };
 
-    // [DODATO] Ako je već keširano
+    //Ako je već keširano
     if (spriteImage.complete) {
         spriteImage.onload();
     }
-
+    //Prekidanje animacije 
     const tid = setTimeout(() => {
         if (mySpin !== currentSpinId) return;
         symbolObj._isRunning = false;
         if (symbolObj._animationID) cancelAnimationFrame(symbolObj._animationID);
         drawStaticLogo(symbolObj);
         AktivneAnimacije.delete(key);
-        // pendingTimers.delete(tid); ovo dodajemo ako koristimo stopandFreezeAnimation()
+        pendingTimers.delete(tid);//  ovo dodajemo ako koristimo stopandFreezeAnimation()
     }, duration);
     symbolObj._timeoutId = tid;
     pendingTimers.add(tid);
@@ -445,14 +490,15 @@ function createAnimation(image, symbolData, mySpin){
 
 const KesiraneSlike = new Map(); 
 function drawStaticLogo(image){
-    if (image && image._spinId !== undefined && image._spinId !== currentSpinId) return; // [DODATO]
+    if (image && image._spinId !== undefined && image._spinId !== currentSpinId) return; // Provera da li spinID simbola odgovara globalnom spinu za taj sablon simbola, sprecava da 
+                                                                                         // stari simbol upadne u novi spin 
     ctx.clearRect(image.x, image.y, image.width, image.height);
 
     const kljuc = image.srcStatic;
 
-    if (KesiraneSlike.has(kljuc)) {
+    if (KesiraneSlike.has(kljuc)) { // Kesiramo slike zbog animacija , kako se iz animaraju svi simboli mora se vratiti staticna slika pa je lakse pamtiti u cache nego crtati opet nove 
         const k = KesiraneSlike.get(kljuc);
-        if (image._spinId !== currentSpinId) return;
+        if (image._spinId !== currentSpinId) return; // Provera da li spinID simbola odgovara globalnom spinu za taj sablon simbola
         ctx.drawImage(k, image.x, image.y, image.width, image.height);
     } else {
         const novaSlika = new Image();
@@ -460,7 +506,7 @@ function drawStaticLogo(image){
 
         novaSlika.onload = () => {
             if (image._spinId !== currentSpinId) return;
-            KesiraneSlike.set(kljuc, novaSlika);
+            KesiraneSlike.set(kljuc, novaSlika); // Prilikom iscrtavanja simbola na pocetku runde , pamtimo te slike u cache 
             ctx.drawImage(novaSlika, image.x, image.y, image.width, image.height);
         };
         if (novaSlika.complete) {
@@ -512,15 +558,18 @@ let trigger=false;
 let timer = null;
 
 dugme2.addEventListener('click',()=>{
+    dugme2.classList.toggle("active");
     if(trigger){
-            trigger=false;
-            clearTimeout(timer);
-            timer=null;
-        // stopAllAnimationsAndFreeze();
+            // trigger=false;
+            // clearTimeout(timer);
+            // timer=null;
+        stopAllAnimationsAndFreeze();
+        dugme.classList.remove("disabled");
     }
     else{
         trigger=true;
         Auto();
+        dugme.classList.add("disabled");
     }
 });
 
@@ -559,35 +608,35 @@ function Auto(){
 
 
 
-// [DODATO] Prekini SVE animacije i ostavi statičnu sliku
+//Prekini SVE animacije i ostavi statičnu sliku
 
-// function stopAllAnimationsAndFreeze() {
-//   // 1) Zaustavi Auto petlju i grupne loop-ove
-//   trigger = false;
-//   if (timer) { clearTimeout(timer); timer = null; }
-//   animacijaLoop = false;
-//   if (loopAnimacija) { clearTimeout(loopAnimacija); loopAnimacija = null; }
+function stopAllAnimationsAndFreeze() {
+  // Zaustavi Auto petlju i grupne loop-ove
+  trigger = false;
+  if (timer) { clearTimeout(timer); timer = null; }
+  animacijaLoop = false;
+  if (loopAnimacija) { clearTimeout(loopAnimacija); loopAnimacija = null; }
 
-//   // 2) Prekini sve pending setTimeout-ove iz animacija
-//   for (const t of pendingTimers) clearTimeout(t);
-//   pendingTimers.clear();
+  // Prekini sve pending setTimeout-ove iz animacija
+  for (const t of pendingTimers) clearTimeout(t);
+  pendingTimers.clear();
 
-//   // 3) Prekini sve rAF animacije po simbolima
-//   if (drawSymbols && Array.isArray(drawSymbols)) {
-//     for (const simbol of drawSymbols) {
-//       simbol._isRunning = false;
-//       if (simbol._animationID) {
-//         cancelAnimationFrame(simbol._animationID);
-//         simbol._animationID = null;
-//       }
-//     }
-//   }
-//   AktivneAnimacije.clear();
+  // Prekini sve rAF animacije po simbolima
+  if (drawSymbols && Array.isArray(drawSymbols)) {
+    for (const simbol of drawSymbols) {
+      simbol._isRunning = false;
+      if (simbol._animationID) {
+        cancelAnimationFrame(simbol._animationID);
+        simbol._animationID = null;
+      }
+    }
+  }
+  AktivneAnimacije.clear();
 
-//   // 4) Zacrataj statične slike preko svih trenutnih simbola
-//   if (drawSymbols && Array.isArray(drawSymbols)) {
-//     for (const simbol of drawSymbols) {
-//       drawStaticLogo(simbol); // koristi postojeću funkciju
-//     }
-//   }
-// }
+  //Zacrataj statične slike preko svih trenutnih simbola
+  if (drawSymbols && Array.isArray(drawSymbols)) {
+    for (const simbol of drawSymbols) {
+      drawStaticLogo(simbol); // koristi postojeću funkciju
+    }
+  }
+}

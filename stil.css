@@ -9,6 +9,7 @@ html, body {
     position: relative;
     width: 100vw;
     height: 100vh;
+      user-select: none;
    
 }
 
@@ -39,17 +40,48 @@ img{
     bottom: 0;
     height: 10%;
     width: 100%;
-    background-color: transparent;
+ background: linear-gradient(
+    to bottom,
+    rgba(128,128,128,0.5),   /* siva ali providna */
+    rgba(128,128,128,0.4)   /* skoro puna siva */
+  );
     display: flex;
-    justify-content: center;
+    justify-content:space-evenly;
     align-items: center;
     gap: 3px;
+    user-select: none;
+    
+}
+.button-wrapper{
+    gap: 2%;
+    width: 30%;
+    height: 100%;
+    
+
+}
+#button2.active {
+     background-color: green;
+     transform: scale(1.1);
+}
+#button:hover {
+    background-color: green;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.info-wrapper{
+    gap: 10%;
+    width: 30%;
+    height: 100%;
+}
+.muteBtn{
+    width: 10%;
+    height: 100%;
 }
 .info button{
-    background-color: yellow;
-    border: none;
+    background-color: transparent;
+    border: 1px solid white;
     border-radius: 2vh;
-    width: 8%;
+    width: 40%;
     height: 50%;
     margin: 1%;
     margin-bottom: 1%;
@@ -63,4 +95,27 @@ img{
     justify-content:center;
     align-items: center;
 }
+#button.disabled{
+    opacity: 0.6;         
+    pointer-events: none;
+}
+ul{
+    list-style-type: none;
+    width: 33%;
+    padding: 0;
+    margin: 0;
+}
+.info-labels{
+    text-align: center;
+    width: 40%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+}
+#fullscreenBtn{
+    cursor: pointer;
+}
+
+
 

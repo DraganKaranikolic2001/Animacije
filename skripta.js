@@ -35,6 +35,9 @@ dugme.addEventListener("click",()=>{drawSlot();});
 dugme2.addEventListener("click",()=>{Spoji();});
 
 
+
+
+
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
 
