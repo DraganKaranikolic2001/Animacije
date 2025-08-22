@@ -30,12 +30,12 @@
           <div class="info-labels flex-center">
             <ul>
               <li>
-                <span>Credit</span>
+                <span id="cashSpan">Cash</span>
                 <span></span>
-                <span>Cash</span>
+                <span id="creditSpan">Credit</span>
               </li>
               <li>
-                <span>5000</span>
+                <span id="credit">5000.00</span>
               </li>
             </ul>
             <ul>
@@ -43,7 +43,7 @@
                 <span>WIN</span>
               </li>
               <li>
-                <span>0.00</span>
+                <span id="win">0.00</span>
               </li>
             </ul>
             <ul>
@@ -51,11 +51,30 @@
                 <span>Total bet</span>
               </li>
               <li>
-                <span>1.00</span>
+                <span id="bet">1.00</span>
               </li>
             </ul>
           </div>
-          <div class="button-wrapper flex-center">
+          <div class="button-wrapper ">
+            <div class="betLine-wrapper">
+                <div class="infoForLines">
+                  <div style="font-size: 9px;">FIXED LINES</div>
+                  <div class="lines-wrapper forBet ">
+                      <div style="color: transparent;">+</div>
+                      <div id="numofLines"style="font-size: 18px; text-align: center;">5</div>
+                      <div style="color: transparent">-</div>
+                    </div>
+              </div>
+              <div class="infoForBet flex-center">
+                <div style="font-size: 10px;">BET</div>
+                <div class="bet-button-wrapper forBet ">
+                  <div style="color: green; font-weight: bold;">+</div>
+                  <div id="bet" style="font-size: 18px; text-align: center;">1</div>
+                  <div style="color: red; font-weight: bold;">-</div>
+                </div>
+              </div>
+            </div>
+            
             <button id="button" class="flex-center">Start</button>
             <button id="button2" class="flex-center">Auto</button>
           </div>

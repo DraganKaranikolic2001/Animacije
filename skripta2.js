@@ -5,11 +5,11 @@ const pendingTimers = new Set();
 
 
 const symbols = [
-    { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
+    // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
-    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
+    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
+    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
     // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
     // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,width: 260, height: 260},
     // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,width: 260, height: 260},
@@ -35,7 +35,7 @@ document.addEventListener('keydown', function(event){
         drawSlot()
 })
 
-
+//Za info hub dugmici , akcije 
 const fullBtn = document.getElementById("fullscreenBtn");
 fullBtn.addEventListener("click", () => {
     if(!document.fullscreenElement){
@@ -45,7 +45,20 @@ fullBtn.addEventListener("click", () => {
         document.exitFullscreen();
     }    
 })
-
+const creditSpan = document.getElementById("creditSpan");
+const cashSpan = document.getElementById("cashSpan");
+const creditValue= document.getElementById("credit");
+cashSpan.addEventListener("click",()=>{
+    cashSpan.style.color="white";
+    creditSpan.style.color="gray";
+    creditValue.innerText="5000.00";
+})
+creditSpan.addEventListener("click",()=>{
+    cashSpan.style.color="gray";
+    creditSpan.style.color="white";
+    creditValue.innerText="500000";
+})
+//--------------------------------------------------------------
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
 
@@ -57,7 +70,7 @@ function resize() {
   const DESIGN_W = 1366;
   const DESIGN_H = 768;
 
-  // 2) Koordinate “reels” okvira unutar te slike (u pikselima fajla)
+  //Koordinate “reels” okvira unutar te slike (u pikselima fajla)
   
   const REELS = {
     left: 168,
@@ -73,7 +86,7 @@ function resize() {
     height: 100
   }
 
-  // 3) Koliko je slika zaista velika na ekranu 
+  
   const contW = container.clientWidth;
   const contH = container.clientHeight;
 
@@ -85,7 +98,7 @@ function resize() {
   const offX = (contW - renderedW) * 0.5;
   const offY = (contH - renderedH) * 0.5;
 
-  // 4) Iz toga dobijemo tačne CSS dimenzije i poziciju canvasa
+  //Iz toga dobijemo tačne CSS dimenzije i poziciju canvasa
   const cssLeft   = offX + REELS.left   * scale;
   const cssTop    = offY + REELS.top    * scale;
   const cssWidth  = REELS.width  * scale;
@@ -98,7 +111,7 @@ function resize() {
   canvas.style.width  = cssWidth + "px";
   canvas.style.height = cssHeight + "px";
 
-  // 5) Podesi “unutrašnju” rezoluciju canvasa (oštrina na svim DPR)
+  // Podesi unutrašnju rezoluciju canvasa (oštrina na svim DPR)
   canvas.width  = Math.round(cssWidth  * dpr);
   canvas.height = Math.round(cssHeight * dpr);
 
@@ -156,7 +169,7 @@ let drawSymbols;
 let sviSimboli;
 let animacijaLoop= false;
 function drawSlot(){
-    // [DODATO] Novi spin: invalidiraj sve prethodne callback-ove
+    // Novi spin: invalidiraj sve prethodne callback-ove
     currentSpinId++;
     for (const t of pendingTimers) clearTimeout(t);
     pendingTimers.clear();
@@ -407,7 +420,7 @@ function startCanvasAnimation(duration,symbolObj){
     //Ako je simbol vec u animaciji 
     if (symbolObj._isRunning) return;
 
-    // [DODATO] Anti-overlap na istom polju
+    // Anti-overlap na istom polju
     const key = `${symbolObj.x}_${symbolObj.y}`; //pravljenje kljuca za svaki simbol na reelovima
     const now = performance.now();
     if (AktivneAnimacije.has(key) && now - AktivneAnimacije.get(key) < 80) return; //provera da li je proslo 80ms izmedju animacija da se ne bi preklopile 
@@ -600,15 +613,14 @@ function Auto(){
 
 //canvas uvek da prati reelove, nakon sto bude pratio reelove racunacu 
 
-// dinamcki 16:9 za canvas ,  da se ne brisu simboli kad se resizuje , linije animacija kad treba 
-// start , autoplay i ostale dugmice iz UI dodati 
 
 
 
 
 
 
-//Prekini SVE animacije i ostavi statičnu sliku
+
+//Prekini sve animacije i ostavi statičnu sliku
 
 function stopAllAnimationsAndFreeze() {
   // Zaustavi Auto petlju i grupne loop-ove
@@ -640,3 +652,8 @@ function stopAllAnimationsAndFreeze() {
     }
   }
 }
+
+//dodati canvas iza glavnog canvasa koji ce samo sluziti da se crtaju linije 
+//fullscreen bug da se ne preklapaju 2 canvasa
+//logika racunanja za dobitak i info deo za igraca i za auto broj rundi kao na html5
+//UI resize labela ispod 

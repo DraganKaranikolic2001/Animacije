@@ -45,6 +45,7 @@ img{
     rgba(128,128,128,0.5),   /* siva ali providna */
     rgba(128,128,128,0.4)   /* skoro puna siva */
   );
+    box-shadow: rgba(128,128,128,0.9);
     display: flex;
     justify-content:space-evenly;
     align-items: center;
@@ -56,6 +57,9 @@ img{
     gap: 2%;
     width: 30%;
     height: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
     
 
 }
@@ -81,7 +85,7 @@ img{
     background-color: transparent;
     border: 1px solid white;
     border-radius: 2vh;
-    width: 40%;
+    width: 30%;
     height: 50%;
     margin: 1%;
     margin-bottom: 1%;
@@ -94,6 +98,7 @@ img{
     display: flex;
     justify-content:center;
     align-items: center;
+    text-align: center;
 }
 #button.disabled{
     opacity: 0.6;         
@@ -116,6 +121,53 @@ ul{
 #fullscreenBtn{
     cursor: pointer;
 }
+#creditSpan,#cashSpan{
+    cursor: pointer;
+}
+span,button{
+    color: white;
+}
+#creditSpan{
+    color: gray;
+}
+
+.forBet{
+    border: 1px solid white;
+    border-radius: 1px;
+    width: 100%;
+    font-size: 20px;
+    height: 50%;
+    display: flex;
+    justify-content: space-between;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-left: 10px;
+    margin-top: 5px;
+    
+}
+
+.betLine-wrapper{
+    display: flex;
+    flex-direction: column;
+}
+
+.lines-wrapper{
+    margin-left: 0;
+    margin-top: 0;
+}
+.infoForLines{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+#bet{
+    color: white;
+}
+#numofLines{
+    color: white;
+}
+
 
 
 
