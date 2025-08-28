@@ -1,6 +1,7 @@
 const AktivneAnimacije = new Map();
 //Globalni ID spina i set za tajmere
 let currentSpinId = 0;
+let resizeToken = 0;
 const pendingTimers = new Set();
 
 
@@ -39,12 +40,19 @@ document.addEventListener('keydown', function(event){
 const fullBtn = document.getElementById("fullscreenBtn");
 fullBtn.addEventListener("click", () => {
     if(!document.fullscreenElement){
+        stopAllAnimationsAndFreeze();
         page.requestFullscreen();
     }
     else{
+        stopAllAnimationsAndFreeze();
         document.exitFullscreen();
     }    
 })
+document.addEventListener('fullscreenchange', () => {
+  resizeToken++;
+  resize();
+  rescaleAndreDraw();
+});
 const creditSpan = document.getElementById("creditSpan");
 const cashSpan = document.getElementById("cashSpan");
 const creditValue= document.getElementById("credit");
@@ -61,7 +69,10 @@ creditSpan.addEventListener("click",()=>{
 //--------------------------------------------------------------
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
-
+const canvasLine= document.getElementById("canvas2");
+const ctxLine= canvasLine.getContext("2d");
+const canvasFront = document.getElementById("canvas3");
+const ctxFront = canvasFront.getContext("2d");
 function resize() {
   const container = document.getElementById("main-container");
   const dpr = window.devicePixelRatio || 1;
@@ -111,9 +122,36 @@ function resize() {
   canvas.style.width  = cssWidth + "px";
   canvas.style.height = cssHeight + "px";
 
+  //Za linije iza simbola
+  const canvasLine= document.getElementById("canvas2");
+  canvasLine.style.left   = cssLeft + "px";
+  canvasLine.style.top    = cssTop + "px";
+  canvasLine.style.width  = cssWidth + "px";
+  canvasLine.style.height = cssHeight + "px";
+
+  //Za linije ispred simbola 
+  const canvasFront=document.getElementById("canvas3");
+  canvasFront.style.left   = cssLeft + "px";
+  canvasFront.style.top    = cssTop + "px";
+  canvasFront.style.width  = cssWidth + "px";
+  canvasFront.style.height = cssHeight + "px";
+
+
   // Podesi unutrašnju rezoluciju canvasa (oštrina na svim DPR)
   canvas.width  = Math.round(cssWidth  * dpr);
   canvas.height = Math.round(cssHeight * dpr);
+
+  canvasLine.width  = Math.round(cssWidth  * dpr);
+  canvasLine.height = Math.round(cssHeight * dpr);
+
+  canvasFront.width  = Math.round(cssWidth  * dpr);
+  canvasFront.height = Math.round(cssHeight * dpr);
+
+  const ctxFront=canvasFront.getContext("2d");
+  ctxFront.setTransform(dpr,0,0,dpr,0,0);
+
+  const ctxLine=canvasLine.getContext("2d");
+  ctxLine.setTransform(dpr,0,0,dpr,0,0);
 
   const ctx = canvas.getContext("2d");
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -135,13 +173,12 @@ function rescaleAndreDraw(){
 
     stopAllAnimationsAndFreeze(); // prekid svih animacija da ne bi se videli pri resizu window-a
 
-    const cssW= canvas.clientWidth;
-    const cssH= canvas.clientHeight;
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    const cssW = canvas.clientWidth;
+    const cssH = canvas.clientHeight;
+    ctx.clearRect(0, 0, cssW, cssH);
 
     for (const s of drawSymbols){
-        if(s._spinId!== currentSpinId) return;
+        if(s._spinId!== currentSpinId) continue;
 
         s.x=s.nx*cssW; // vracanje u normalnih koordinata radi iscrtavanja simbola 
         s.y=s.ny*cssH;
@@ -151,22 +188,25 @@ function rescaleAndreDraw(){
         drawStaticLogo(s);
     }
     dugme2.classList.remove("active");
+    console.log("Uso si u fju");
 }
+function handleResizeChange() {
+  resizeToken++;     // invalidiraj stare callback-ove
+  resize();          // podesi canvas (atribute + DPR)
+  rescaleAndreDraw();// preračunaj x/y/width/height i iscrtaj
+}
+// novi handleri umesto gore navedenih
+window.addEventListener('resize', handleResizeChange);
+window.addEventListener('orientationchange', handleResizeChange);
+document.addEventListener('fullscreenchange', handleResizeChange);
 
-function resizeAndLoadEvents(fns){
-    fns.forEach(fn=>{
-        window.addEventListener("resize",fn);
-        window.addEventListener("load",fn);
-    });
-}
-resizeAndLoadEvents([
-    resize,
-    rescaleAndreDraw
-    
-]);
+window.addEventListener('load', () => {
+  resize();
+  rescaleAndreDraw();
+});
+
 
 let drawSymbols;
-let sviSimboli;
 let animacijaLoop= false;
 function drawSlot(){
     // Novi spin: invalidiraj sve prethodne callback-ove
@@ -185,7 +225,7 @@ function drawSlot(){
     }
     AktivneAnimacije.clear();
     
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
     ctx.fillRect(0,0,1,1);
     const cssW = canvas.clientWidth;
     const cssH = canvas.clientHeight;
@@ -196,12 +236,10 @@ function drawSlot(){
     // console.log("Sirina canvasa" + canvas.width);
     // console.log(symWidth);
     drawSymbols = [];
-    sviSimboli = [];
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
             const symbol=generateSymbol();
-            const img= new Image();
-            img.src=symbol.src;
+            
             
             let x;
             let y;
@@ -238,31 +276,8 @@ function drawSlot(){
                         _timeoutId: null,
                         _spinId: currentSpinId //vezivanje za aktivni spin
                     });
-
-            sviSimboli.push({
-                        id: symbol.id
-,                       x: x,
-                        y: y,
-                        nx: nx,
-                        ny : ny,
-                        nw: nw,
-                        nh : nh,
-                        src: symbol.srcSprite,
-                        srcStatic : symbol.src,
-                        width: symWidth,
-                        height: symHeight,
-                        _isRunning: false,
-                        _animationID : null,
-                        _timeoutId: null,
-                        _spinId: currentSpinId 
-                    });                    
-
-            img.onload= function(){
-             
-                    ctx.drawImage(img, x, y, symWidth, symHeight);
-                
-            }
-           
+               
+           drawStaticLogo(drawSymbols[drawSymbols.length - 1]);
         }
     }
     animacijaLoop=false;
@@ -279,7 +294,7 @@ function drawSlot(){
 
 let dobitneLinije=[];
 let loopAnimacija=null;
-let SviSimboli=[];
+
 
 function Spoji(){
     // console.log("POZVANA FJA");
@@ -328,15 +343,56 @@ function Spoji(){
     
 }
 
-function pokreniAnimacijuSvih(){
+function pokreniAnimacijuSvih(){ // ovo radi  
     const cssW = canvas.clientWidth;
-    for(let simbol of dobitneLinije){
-        let y= simbol.y;
-        let yPoz= y+(simbol.height/2);
+    // 1. Grupisanje simbola po yPoz
+const grupe = {};
+for (let simbol of dobitneLinije) {
+    let y = simbol.y;
+    let yPoz = y + (simbol.height / 2);
 
-        startCanvasAnimation(1800,simbol);
-        nacrtajLinije(simbol.x,cssW-simbol.width/2,yPoz,dobitneLinije);
+    if (!grupe[yPoz]) {
+        grupe[yPoz] = [];
     }
+    grupe[yPoz].push(simbol);
+}
+    
+// 2. Iteracija kroz grupe
+for (let yPoz in grupe) {
+    let grupa = grupe[yPoz];
+    let tag =false;
+    // uzmi zadnji simbol u toj grupi
+    let poslednji = grupa[grupa.length - 1];
+    let endX;
+    let x;
+    if(grupa.length===5){
+        endX = poslednji.x + poslednji.width / 1.5;
+        x=endX;
+        tag=true;
+    }
+    else{
+        endX = poslednji.x + poslednji.width / 1.2;
+        x = cssW - poslednji.width / 2 - grupa[0].x - 10;
+    }
+    // računanje na osnovu zadnjeg
+
+    // crtanje svih linija u toj grupi
+    for (let simbol of grupa) {
+        console.log("simbol " + simbol.src);
+
+        startCanvasAnimation(1800, simbol);
+
+        nacrtajLinije(
+            simbol.x + 20, // startX
+            endX,
+            x,
+            Number(yPoz), // mora biti broj jer je key string
+            dobitneLinije,
+            tag
+        );
+    }
+}
+
     setTimeout(()=>{
             pokreniAnimLoop();
     },2600);
@@ -374,13 +430,26 @@ function pokreniAnimLoop() {
           if (!animacijaLoop || yRedosled.length === 0) return;
         const y = yRedosled[indeks];
         const grupa = grupePoY[y];
-
+        let tag = false;
         let i =0;
-
-        let duzina = grupa.length; 
-        let startX= grupa[0].x; //prva x koordinata
-        let endX=grupa[duzina-1].x; // kranja xx koordinata
+        const cssW=canvas.clientWidth;
+        let duzina = grupa.length;
+        console.log(duzina); 
+        let startX= grupa[0].x+20; //prva x koordinata
+        let endX; // kranja xx koordinata
         let yPoz = y+(grupa[0].height)/2; // sredina y svakog reda za crtanje linije
+        let x;
+        if(grupa.length===5){
+            endX=grupa[duzina-1].x+grupa[0].width/2;
+            x=endX;
+            tag=true;
+            console.log("USO SAM");
+        }
+        else{
+             x= cssW-grupa[0].width/2-grupa[0].x;
+            endX=grupa[duzina-1].x+grupa[0].width;
+        }
+        
         // console.log("ENDY" + endY);
         // console.log("endy" + grupa[0].width/2);
         // // console.log("y : " + y);
@@ -402,7 +471,7 @@ function pokreniAnimLoop() {
             i++;
         }
         
-        nacrtajLinije(startX,endX,yPoz,grupa);
+        nacrtajLinije(startX,endX,x,yPoz,grupa,tag);
         
         indeks = (indeks + 1) % yRedosled.length;
         loopAnimacija=setTimeout(animirajSledecuGrupu, 2600); // rekurzivni poziv fje da animira sve ostale grupe po vrednoscu Y 
@@ -431,15 +500,15 @@ function startCanvasAnimation(duration,symbolObj){
         cancelAnimationFrame(symbolObj._animationID);
         symbolObj._animationID = null;
     }
-
+    const myResize = resizeToken;
     const spriteImage = new Image();
     spriteImage.src = symbolObj.src;
 
     symbolObj._isRunning = true;
     //Pokretanje animacija 
     spriteImage.onload = () => {
-        if (mySpin !== currentSpinId || !symbolObj._isRunning) return;
-        const animationFunction = createAnimation(spriteImage, symbolObj, mySpin);
+        if (mySpin !== currentSpinId || myResize!==resizeToken || !symbolObj._isRunning) return;
+        const animationFunction = createAnimation(spriteImage, symbolObj, mySpin,myResize);
         symbolObj._animationID = requestAnimationFrame(animationFunction);
     };
 
@@ -449,7 +518,7 @@ function startCanvasAnimation(duration,symbolObj){
     }
     //Prekidanje animacije 
     const tid = setTimeout(() => {
-        if (mySpin !== currentSpinId) return;
+        if (mySpin !== currentSpinId || myResize!==resizeToken) return;
         symbolObj._isRunning = false;
         if (symbolObj._animationID) cancelAnimationFrame(symbolObj._animationID);
         drawStaticLogo(symbolObj);
@@ -461,7 +530,7 @@ function startCanvasAnimation(duration,symbolObj){
 }
    
 const frameInterval = 1000/30;
-function createAnimation(image, symbolData, mySpin){
+function createAnimation(image, symbolData, mySpin, myResize){
     let frameRate = 0;
     let number = 0;
     let diff = 0;
@@ -469,7 +538,7 @@ function createAnimation(image, symbolData, mySpin){
     let firstCall = true;
 
     return function animate(timmy){
-        if (mySpin !== currentSpinId || !symbolData._isRunning) return;
+        if (mySpin !== currentSpinId || myResize!==resizeToken || !symbolData._isRunning) return;
 
         if (firstCall){
             number = timmy || 0;
@@ -533,32 +602,58 @@ function drawStaticLogo(image){
 
 let debljina = 2;
 let increase = true;
-function nacrtajLinije(startX , endX, y, grupa){
-    const mySpin = currentSpinId; // [DODATO]
-    const cssW = canvas.clientWidth;
-    const endX2 = cssW - grupa[0].width / 2;
-    ctx.strokeStyle = "yellow";
-    ctx.lineWidth = debljina;
+function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
+    const myResize = resizeToken;
+    const mySpin = currentSpinId; 
+    const cssW = canvasFront.clientWidth;
+
+    
+    ctxLine.strokeStyle = "yellow";
+    ctxLine.lineWidth = debljina;
+    ctxFront.strokeStyle="green";
+    ctxFront.lineWidth=debljina;
 
     function crtaj(){
-        if (mySpin !== currentSpinId) return;
+        if (mySpin !== currentSpinId || myResize!==resizeToken) return;
+        // console.log("Start X: " + startX);
+        // console.log("End X: " + endX);
+        // console.log("End X2: " + endX2);
+        // console.log("Y: " + y);
+            if(tag){   
+                ctxLine.beginPath();
+                ctxLine.moveTo(startX, y);
+                ctxLine.lineTo(endX, y);
+                ctxLine.stroke(); 
+            }
+            else{
+                ctxLine.beginPath();
+                ctxLine.moveTo(startX, y);
+                ctxLine.lineTo(endX, y);
+                ctxLine.stroke(); 
 
-        ctx.beginPath();
-        ctx.moveTo(startX, y);
-        ctx.lineTo(endX, y);
-        ctx.stroke();
-        ctx.moveTo(endX,y);
-        ctx.lineTo(endX2,y);
-        ctx.stroke();
+                ctxFront.beginPath()
+                ctxFront.moveTo(endX,y);
+                ctxFront.lineTo(endX2,y);
+                ctxFront.stroke();
+            }            
+
+             
+        
+        
+
+       
+   
 
         const sveZavrsene = grupa.every(simbol => !simbol._isRunning || simbol._spinId !== mySpin);
 
         if (sveZavrsene) {
             const pad = 2;
-            ctx.clearRect(Math.floor(startX), Math.floor((y - ctx.lineWidth / 2) -1 ),
-                          Math.ceil(endX2 - startX) + pad*2, Math.ceil(ctx.lineWidth) + pad*2);
+            ctxLine.clearRect(Math.floor(startX), Math.floor((y - ctxLine.lineWidth / 2) -1 ),
+                          Math.ceil(endX - startX) + pad*2, Math.ceil(ctxLine.lineWidth) + pad*2);
+            ctxFront.clearRect(Math.floor(endX),Math.floor((y - ctxFront.lineWidth / 2) -1 ),
+            Math.ceil(endX2-endX),Math.floor((y - ctxFront.lineWidth / 2) -1)) ;             
 
-            for (let simbol of sviSimboli) {
+            for (let simbol of drawSymbols) {
                 if (simbol._spinId === mySpin && !simbol._isRunning) drawStaticLogo(simbol);
             }
         } else {
@@ -573,9 +668,6 @@ let timer = null;
 dugme2.addEventListener('click',()=>{
     dugme2.classList.toggle("active");
     if(trigger){
-            // trigger=false;
-            // clearTimeout(timer);
-            // timer=null;
         stopAllAnimationsAndFreeze();
         dugme.classList.remove("disabled");
     }
@@ -653,7 +745,6 @@ function stopAllAnimationsAndFreeze() {
   }
 }
 
-//dodati canvas iza glavnog canvasa koji ce samo sluziti da se crtaju linije 
-//fullscreen bug da se ne preklapaju 2 canvasa
+
 //logika racunanja za dobitak i info deo za igraca i za auto broj rundi kao na html5
 //UI resize labela ispod 
