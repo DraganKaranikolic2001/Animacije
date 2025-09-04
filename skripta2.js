@@ -1,3 +1,5 @@
+// const { StrictMode } = require("react");
+
 const AktivneAnimacije = new Map();
 //Globalni ID spina i set za tajmere
 let currentSpinId = 0;
@@ -23,7 +25,28 @@ const symbols = [
     const randomIndex= Math.floor(Math.random()*symbols.length);
     return symbols[randomIndex];
 }
+let i =0;
+const betAmount = [1,2,5,10,20];
+var betText = parseFloat(betAmount[i]);
+function increment(){
+    i++;
+    if(i>4)
+        i=0;
+    document.getElementById("bet").textContent=betAmount[i];
+}
+function decrement(){
+    i--;
+    if(i<0)
+        i=4;
 
+     document.getElementById("bet").textContent=betAmount[i];
+}
+
+
+window.addEventListener('DOMContentLoaded', function(){
+  document.getElementById("bet").textContent=betAmount[i];
+//   console.log(document.getElementById("bet"));
+})
 
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
@@ -73,6 +96,26 @@ const canvasLine= document.getElementById("canvas2");
 const ctxLine= canvasLine.getContext("2d");
 const canvasFront = document.getElementById("canvas3");
 const ctxFront = canvasFront.getContext("2d");
+
+const infoDiv= document.getElementById("help-screen");
+const infoBtn = document.getElementById("infoBtn");
+const helpContent = document.getElementById("help-content");
+
+infoBtn.addEventListener("click", ()=>{
+
+    infoDiv.style.visibility="visible";
+})
+const closeBtn = document.getElementById("close-help-screen");
+closeBtn.addEventListener("click",()=>{
+    infoDiv.style.visibility="hidden";
+    // console.log("Klik");
+})
+
+infoDiv.addEventListener("click",(e)=>{
+    if(!helpContent.contains(e.target) ){
+        infoDiv.style.visibility="hidden";
+    }
+})
 function resize() {
   const container = document.getElementById("main-container");
   const dpr = window.devicePixelRatio || 1;
@@ -166,6 +209,46 @@ function resize() {
   info.style.top    = pTop + "px";
   info.style.width  = pWidth + "px";
   info.style.height = pHeight + "px";
+
+  //Elementi u info delu
+
+  const span =document.querySelector(".info-labels");
+
+
+  const scaleLabel = Math.min(contW*0.4,contH*0.4);
+  span.style.fontSize =(scaleLabel*0.065)+ "px";
+//   console.log(span.style.fontSize+"px");
+
+  const buttonDiv= document.querySelectorAll(".buttonGamble");
+  buttonDiv.forEach(x=>{
+        x.style.width=(scaleLabel*0.34) + "px";
+        x.style.height=(scaleLabel*0.17) + "px";
+        x.style.fontSize=(scaleLabel*0.08) + "px";
+  })
+
+  const infoBet = document.querySelectorAll(".infoBet");
+  infoBet.forEach(x=>{
+        x.style.width=(scaleLabel*0.25) + "px";
+        x.style.height=(scaleLabel*0.1) + "px";
+        x.style.fontSize=(scaleLabel*0.01) + "px";
+  })
+  const valueforBet = document.querySelectorAll(".forBet");
+  valueforBet.forEach(x=>{
+        x.style.fontSize=(scaleLabel*0.08) + "px";
+  })
+
+  const textInfoForBet = document.querySelector(".textInfo");
+  const childerText = textInfoForBet.querySelectorAll("div");
+  childerText.forEach(x=>{
+    x.style.fontSize=(scaleLabel*0.04) + "px";
+  })
+  const divZaIkone = document.querySelector(".info-wrapper");
+  const ikone = divZaIkone.querySelectorAll("div");
+  ikone.forEach(x=>{
+    x.style.fontSize=(scaleLabel*0.065) + "px";
+    x.style.color="white";
+  })
+
 }
 
 function rescaleAndreDraw(){
@@ -205,7 +288,24 @@ window.addEventListener('load', () => {
   rescaleAndreDraw();
 });
 
-
+// const simboli = [
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},   
+               
+//             ];
 let drawSymbols;
 let animacijaLoop= false;
 function drawSlot(){
@@ -226,6 +326,8 @@ function drawSlot(){
     AktivneAnimacije.clear();
     
     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+    ctxLine.clearRect(0, 0, canvasLine.width, canvasLine.height);
+    ctxFront.clearRect(0, 0, canvasFront.width, canvasFront.height);
     ctx.fillRect(0,0,1,1);
     const cssW = canvas.clientWidth;
     const cssH = canvas.clientHeight;
@@ -236,9 +338,14 @@ function drawSlot(){
     // console.log("Sirina canvasa" + canvas.width);
     // console.log(symWidth);
     drawSymbols = [];
+    let i=0;
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
+            
+            
             const symbol=generateSymbol();
+
+            console.log(symbol);
             
             
             let x;
@@ -278,6 +385,7 @@ function drawSlot(){
                     });
                
            drawStaticLogo(drawSymbols[drawSymbols.length - 1]);
+           i++;
         }
     }
     animacijaLoop=false;
@@ -327,7 +435,7 @@ function Spoji(){
                 // console.log("prom kroz while: " + prom);
             }
 
-            // console.log(dobitneLinije);
+            console.log(dobitneLinije);
 
             if(dobitneLinije.length>0)
             {
@@ -378,7 +486,7 @@ for (let yPoz in grupe) {
 
     // crtanje svih linija u toj grupi
     for (let simbol of grupa) {
-        console.log("simbol " + simbol.src);
+        // console.log("simbol " + simbol.src);
 
         startCanvasAnimation(1800, simbol);
 
@@ -434,7 +542,7 @@ function pokreniAnimLoop() {
         let i =0;
         const cssW=canvas.clientWidth;
         let duzina = grupa.length;
-        console.log(duzina); 
+        // console.log(duzina); 
         let startX= grupa[0].x+20; //prva x koordinata
         let endX; // kranja xx koordinata
         let yPoz = y+(grupa[0].height)/2; // sredina y svakog reda za crtanje linije
@@ -610,7 +718,7 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
     
     ctxLine.strokeStyle = "yellow";
     ctxLine.lineWidth = debljina;
-    ctxFront.strokeStyle="green";
+    ctxFront.strokeStyle="yellow";
     ctxFront.lineWidth=debljina;
 
     function crtaj(){
@@ -648,11 +756,25 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
 
         if (sveZavrsene) {
             const pad = 2;
-            ctxLine.clearRect(Math.floor(startX), Math.floor((y - ctxLine.lineWidth / 2) -1 ),
-                          Math.ceil(endX - startX) + pad*2, Math.ceil(ctxLine.lineWidth) + pad*2);
-            ctxFront.clearRect(Math.floor(endX),Math.floor((y - ctxFront.lineWidth / 2) -1 ),
-            Math.ceil(endX2-endX),Math.floor((y - ctxFront.lineWidth / 2) -1)) ;             
 
+
+        const yTopLine   = Math.floor(y - (ctxLine.lineWidth / 2) - pad);
+        const hLine      = Math.ceil(ctxLine.lineWidth) + pad*2;
+        ctxLine.clearRect(
+        Math.floor(startX) - pad,
+        yTopLine,
+        Math.ceil(endX - startX) + pad*2,
+        hLine
+        );
+
+        const yTopFront  = Math.floor(y - (ctxFront.lineWidth / 2) - pad);
+        const hFront     = Math.ceil(ctxFront.lineWidth) + pad*2;
+        ctxFront.clearRect(
+        Math.floor(endX) - pad,
+        yTopFront,
+        Math.ceil(endX2 - endX) + pad*2,
+        hFront  
+        )
             for (let simbol of drawSymbols) {
                 if (simbol._spinId === mySpin && !simbol._isRunning) drawStaticLogo(simbol);
             }
@@ -685,11 +807,11 @@ function Auto(){
     setTimeout(() => {
         const n = dobitneLinije.length; // sada je realna dužina
         console.log("Dužina dobitneLinije:", n);
-        console.log("Aktivne animacije " + AktivneAnimacije);
-        if (n < 5 && n>0) {
+        // console.log("Aktivne animacije " + AktivneAnimacije);
+        if (n <= 5 && n>0) {
             timer = setTimeout(Auto, 5000);
             console.log("Ima 1 linija");
-        } else if (n > 5 && n < 10) {
+        } else if (n > 5 && n <=10) {
             timer = setTimeout(Auto, 7300);
             console.log("Ima 2 linije");
         } else if (n > 10) {
@@ -747,4 +869,3 @@ function stopAllAnimationsAndFreeze() {
 
 
 //logika racunanja za dobitak i info deo za igraca i za auto broj rundi kao na html5
-//UI resize labela ispod 
