@@ -5,18 +5,22 @@ const AktivneAnimacije = new Map();
 let currentSpinId = 0;
 let resizeToken = 0;
 const pendingTimers = new Set();
+let hardStop = false;          // globalni kill-switch
+let startLoopTimer = null;     // tajmer iz pokreniAnimacijuSvih()
+let autoMode = false;
+let autoTimer = null;
 
 
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
-    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
-    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,width: 260, height: 260},
-    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,width: 260, height: 260},
-    // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png" ,width: 260, height: 260},
-    // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,width: 260, height: 260},
-    // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,width: 260, height: 260},
-    // { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,width: 260, height: 260},
+    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
+    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
+    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
+    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
+    { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
+    { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
+    { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
+    { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
     // { id:9 , src : "symbols/9.png" ,srcSprite:"sprites/9.png" ,width: 260, height: 260},
     // { id:10 , src : "symbols/10.png" ,srcSprite:"sprites/10.png" ,width: 260, height: 260}
 ];
@@ -25,6 +29,8 @@ const symbols = [
     const randomIndex= Math.floor(Math.random()*symbols.length);
     return symbols[randomIndex];
 }
+//------------------------------------------------------------------
+let cashPlayer=500.00;
 let i =0;
 const betAmount = [1,2,5,10,20];
 var betText = parseFloat(betAmount[i]);
@@ -33,6 +39,7 @@ function increment(){
     if(i>4)
         i=0;
     document.getElementById("bet").textContent=betAmount[i];
+    document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
 }
 function decrement(){
     i--;
@@ -40,19 +47,22 @@ function decrement(){
         i=4;
 
      document.getElementById("bet").textContent=betAmount[i];
+     document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
 }
 
 
 window.addEventListener('DOMContentLoaded', function(){
   document.getElementById("bet").textContent=betAmount[i];
-//   console.log(document.getElementById("bet"));
+  document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
+  document.getElementById("credit").textContent=cashPlayer.toFixed(2);
+  setButtonStart();
 })
 
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
 
-dugme.addEventListener("click",()=>{drawSlot();});
+// dugme.addEventListener("click",()=>{drawSlot();});
 
 document.addEventListener('keydown', function(event){
     if(event.code==="Space")
@@ -79,6 +89,7 @@ document.addEventListener('fullscreenchange', () => {
 const creditSpan = document.getElementById("creditSpan");
 const cashSpan = document.getElementById("cashSpan");
 const creditValue= document.getElementById("credit");
+const winText = document.getElementById("win");
 cashSpan.addEventListener("click",()=>{
     cashSpan.style.color="white";
     creditSpan.style.color="gray";
@@ -90,12 +101,7 @@ creditSpan.addEventListener("click",()=>{
     creditValue.innerText="500000";
 })
 //--------------------------------------------------------------
-const canvas = document.getElementById("canvas1");
-const ctx = canvas.getContext("2d");
-const canvasLine= document.getElementById("canvas2");
-const ctxLine= canvasLine.getContext("2d");
-const canvasFront = document.getElementById("canvas3");
-const ctxFront = canvasFront.getContext("2d");
+
 
 const infoDiv= document.getElementById("help-screen");
 const infoBtn = document.getElementById("infoBtn");
@@ -116,6 +122,14 @@ infoDiv.addEventListener("click",(e)=>{
         infoDiv.style.visibility="hidden";
     }
 })
+//-----------------------------------------------------------------------------------------
+
+const canvas = document.getElementById("canvas1");
+const ctx = canvas.getContext("2d");
+const canvasLine= document.getElementById("canvas2");
+const ctxLine= canvasLine.getContext("2d");
+const canvasFront = document.getElementById("canvas3");
+const ctxFront = canvasFront.getContext("2d");
 function resize() {
   const container = document.getElementById("main-container");
   const dpr = window.devicePixelRatio || 1;
@@ -288,6 +302,9 @@ window.addEventListener('load', () => {
   rescaleAndreDraw();
 });
 
+//-------------------------------------------------------------------
+
+
 // const simboli = [
 //                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
@@ -309,8 +326,15 @@ window.addEventListener('load', () => {
 let drawSymbols;
 let animacijaLoop= false;
 function drawSlot(){
-    // Novi spin: invalidiraj sve prethodne callback-ove
+    if(cashPlayer<=0){
+        alert("Nemas vise kredita, ubaci jos novca");
+        dugme.classList.add("disabled");
+        return;
+    }
+        
+    
     currentSpinId++;
+    hardStop=false;
     for (const t of pendingTimers) clearTimeout(t);
     pendingTimers.clear();
 
@@ -341,18 +365,11 @@ function drawSlot(){
     let i=0;
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
-            
-            
             const symbol=generateSymbol();
-
-            console.log(symbol);
-            
-            
+            // console.log(symbol);
             let x;
             let y;
-
             const Column_fact = [null,5.5,4.8,4.7,4.6] 
-            
             x= (col==0)
                 ? offset
                 : col*(symWidth+offset*(Column_fact[col] ?? 4.7))
@@ -381,7 +398,8 @@ function drawSlot(){
                         _isRunning: false,
                         _animationID : null,
                         _timeoutId: null,
-                        _spinId: currentSpinId //vezivanje za aktivni spin
+                        _spinId: currentSpinId,
+                        value: symbol.value
                     });
                
            drawStaticLogo(drawSymbols[drawSymbols.length - 1]);
@@ -394,9 +412,11 @@ function drawSlot(){
     loopAnimacija = null;
     }
     dobitneLinije = [];
+    console.log(dobitneLinije); 
+
     setTimeout(()=>{
         Spoji();
-    },700);
+    },200);
     //  console.log(drawSymbols);
 }
 
@@ -406,12 +426,14 @@ let loopAnimacija=null;
 
 function Spoji(){
     // console.log("POZVANA FJA");
+     const mySpin = currentSpinId;
     let x1;
     let x2;
     let brojac = 0
     let j;
     //Idemo kroz redove 
     for (let m = 0;m<3;m++){
+        if (mySpin !== currentSpinId) return;
         brojac=0;
         x1=drawSymbols[m*5]; //prvi element za svaki red
         j = m*5+1; // indeks za element nakon prvog u redu
@@ -424,6 +446,7 @@ function Spoji(){
         }
         // console.log("brojac: " + brojac);
         if(brojac >= 2){
+            if (mySpin !== currentSpinId) return;
             let prom=5*m; // indeks za prvi element u nizu 
           
             while(0<=brojac){
@@ -434,24 +457,209 @@ function Spoji(){
                 brojac--; 
                 // console.log("prom kroz while: " + prom);
             }
-
-            console.log(dobitneLinije);
-
-            if(dobitneLinije.length>0)
-            {
-                pokreniAnimacijuSvih();
-            }  
+            // console.log(dobitneLinije);           
         }
         else{
             // console.log("nema nista");
         }
   
     }
+    if (mySpin !== currentSpinId) return;
+    var totalBet =parseInt(document.getElementById("Totalbet").textContent);
+    var win=0;
+     if(dobitneLinije.length>0)
+            {
+                console.log("uso sam u granu za dobitne linije");
+                const grupa={}
+                for(let simbol of dobitneLinije)
+                {
+                    let y=simbol.y;
+                    let yPoz= y+(simbol.height/2);
+                    if(!grupa[yPoz]){
+                        grupa[yPoz]=[];
+                    }
+                    grupa[yPoz].push(simbol);
+                }
+                
+                // console.log(grupa);
+                for(let yPoz in grupa)
+                {
+                    var wintmp=0;
+                    tmp=grupa[yPoz];
+                    let x= tmp.length;
+
+                    switch(tmp[0].value){
+                        case 1:
+                            switch(x){
+                                case 3 :
+                                    wintmp=totalBet*10;
+                                    break;
+                                case 4: 
+                                    wintmp=totalBet*40;
+                                    break;
+                                case 5:
+                                    wintmp=totalBet*600;
+                                    break;
+                                default:
+                                    wintmp=0;
+                                    break;    
+                            }
+                        break;
+                        case 2:
+                            switch(x){
+                                case 3 :
+                                    wintmp=totalBet*8;
+                                    break;
+                                case 4: 
+                                    wintmp=totalBet*20;
+                                    break;
+                                case 5:
+                                    wintmp=totalBet*100;
+                                    break;
+                                default:
+                                    wintmp=0;
+                                    break;    
+                            }
+                        break;
+                        case 3: 
+                            switch(x){
+                                case 3 :
+                                    wintmp=totalBet*4;
+                                    break;
+                                case 4: 
+                                    wintmp=totalBet*10;
+                                    break;
+                                case 5:
+                                    wintmp=totalBet*40;
+                                    break;
+                                default:
+                                    wintmp=0;
+                                    break;        
+                            }
+                        break;   
+                        case 4:
+                            switch(x){
+                                case 3 :
+                                    wintmp=totalBet*2;
+                                    break;
+                                case 4: 
+                                    wintmp=totalBet*6;
+                                    break;
+                                case 5:
+                                    wintmp=totalBet*20;
+                                    break;
+                                default:
+                                    wintmp=0;
+                                    break;    
+                            }
+                        break;
+                        default:
+                            wintmp=0;
+                    }
+                    win+=wintmp;
+                }
+            console.log("Win:" + win); 
+           
+            
+            document.getElementById("win").textContent=win.toFixed(2);    
+             if(trigger==true)
+                {
+                  MoneyTransfer(win);  
+                }   
+            else{
+                setButtonTakeWin(win);
+            }    
+                pokreniAnimacijuSvih();
+            }
+      else{
+        cashPlayer-=totalBet;
+        creditValue.textContent=cashPlayer.toFixed(2);
+      } 
+           
         
     
 }
+function setButtonStart(){
+    dugme.textContent="Start";
+    dugme.classList.remove("takeWin");
+    dugme.onclick=()=> drawSlot();
+    console.log("Novac koji imas:" + cashPlayer);
+}
+let isPayingOut = false;
+// function setButtonTakeWin(amount){
+//     dugme.textContent="Take Win";
+//     dugme.classList.add("takeWin");
+//     dugme.onclick = () =>{
+//         for(let i =0;i<amount;i++)
+//         {
+//             cashPlayer+=1;
+//             winText.textContent-=1;
+//         }
+//         creditValue.textContent=cashPlayer.toFixed(2);
+        
+//         stopAllAnimationsAndFreeze();
+//         setButtonStart();
+
+//     }
+// }
+function setButtonTakeWin(amount) {
+  dugme.textContent = "Take Win";
+  dugme.classList.add("takeWin");       
+  dugme.onclick = () => MoneyTransfer(amount);
+}
+function MoneyTransfer(amount)
+{
+     if (isPayingOut) return;
+    isPayingOut = true;
+
+  
+    stopAllAnimationsAndFreeze();
+
+    dugme.classList.add("disabled");    
+    const winEl    = winText;           
+    const creditEl = creditValue;       
+
+    const win0   = Math.min(amount,(Number(winEl.textContent)   || 0));  // polazni win
+    const cash0  = Number(creditEl.textContent) || 0; // polazni kredit
+    const target =  (Number(amount) || 0); // koliko isplaćujemo
+
+    const DURATION = 900;                      // trajanje animacije u ms (~0.9s)
+    const start    = performance.now();
+
+    function tick(t) {
+      const p      = Math.min(1, (t - start) / DURATION);   //Izracunavnja progresa    
+      const moved  = Math.round(target * p * 100) / 100;    //Prebacen novac u decimalama         
+      const newWin = (win0  - moved);
+      const newBal = (cash0 + moved);
+
+      winEl.textContent    = newWin.toFixed(2);
+      creditEl.textContent = newBal.toFixed(2);
+
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        //sigurnost da je tacno prebacen novac
+        winEl.textContent    = (win0  - target).toFixed(2);
+        creditEl.textContent = (cash0 + target).toFixed(2);
+        cashPlayer+=amount;
+        console.log("Haha");
+        dugme.classList.remove("disabled");
+        isPayingOut = false;
+        if(trigger==false)
+        {
+            setButtonStart();
+        }
+          
+      }
+    }
+
+    requestAnimationFrame(tick);
+}
+
 
 function pokreniAnimacijuSvih(){ // ovo radi  
+    const mySpin = currentSpinId;
+    if (mySpin !== currentSpinId) return;
     const cssW = canvas.clientWidth;
     // 1. Grupisanje simbola po yPoz
 const grupe = {};
@@ -483,7 +691,7 @@ for (let yPoz in grupe) {
         x = cssW - poslednji.width / 2 - grupa[0].x - 10;
     }
     // računanje na osnovu zadnjeg
-
+    // console.log(grupa);
     // crtanje svih linija u toj grupi
     for (let simbol of grupa) {
         // console.log("simbol " + simbol.src);
@@ -501,9 +709,12 @@ for (let yPoz in grupe) {
     }
 }
 
-    setTimeout(()=>{
-            pokreniAnimLoop();
-    },2600);
+    if (startLoopTimer) { clearTimeout(startLoopTimer); startLoopTimer = null; }
+        startLoopTimer = setTimeout(() => {
+    if (!hardStop && mySpin === currentSpinId) {
+        pokreniAnimLoop();
+        }
+    }, 2600);
 }
 
 function pokreniAnimLoop() {
@@ -535,7 +746,7 @@ function pokreniAnimLoop() {
 
     function animirajSledecuGrupu() {
         
-          if (!animacijaLoop || yRedosled.length === 0) return;
+          if (!animacijaLoop  || yRedosled.length === 0) return;
         const y = yRedosled[indeks];
         const grupa = grupePoY[y];
         let tag = false;
@@ -722,7 +933,12 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
     ctxFront.lineWidth=debljina;
 
     function crtaj(){
-        if (mySpin !== currentSpinId || myResize!==resizeToken) return;
+        if (hardStop || mySpin !== currentSpinId || myResize!==resizeToken) {
+      
+        ctxLine.clearRect(0, 0, canvasLine.width, canvasLine.height);
+        ctxFront.clearRect(0, 0, canvasFront.width, canvasFront.height);
+        return;
+    }
         // console.log("Start X: " + startX);
         // console.log("End X: " + endX);
         // console.log("End X2: " + endX2);
@@ -769,6 +985,9 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
 
         const yTopFront  = Math.floor(y - (ctxFront.lineWidth / 2) - pad);
         const hFront     = Math.ceil(ctxFront.lineWidth) + pad*2;
+        if(hardStop){
+
+        }
         ctxFront.clearRect(
         Math.floor(endX) - pad,
         yTopFront,
@@ -799,20 +1018,21 @@ dugme2.addEventListener('click',()=>{
         dugme.classList.add("disabled");
     }
 });
-
+//takodje moze se otici u minus ukoliko imam tipa jos 25credita a ja gemblujem 100 , on ce odrati igru i ucicem u minus 75
+// Mora da se menja jer sam dodao win , nesto ga blokira da se pokrene 
 function Auto(){
     if(!trigger) return;
     drawSlot();
     
     setTimeout(() => {
         const n = dobitneLinije.length; // sada je realna dužina
-        console.log("Dužina dobitneLinije:", n);
+        // console.log("Dužina dobitneLinije:", n);
         // console.log("Aktivne animacije " + AktivneAnimacije);
         if (n <= 5 && n>0) {
             timer = setTimeout(Auto, 5000);
             console.log("Ima 1 linija");
         } else if (n > 5 && n <=10) {
-            timer = setTimeout(Auto, 7300);
+            timer = setTimeout( );
             console.log("Ima 2 linije");
         } else if (n > 10) {
             timer = setTimeout(Auto, 10200);
@@ -827,17 +1047,11 @@ function Auto(){
 
 //canvas uvek da prati reelove, nakon sto bude pratio reelove racunacu 
 
-
-
-
-
-
-
-
 //Prekini sve animacije i ostavi statičnu sliku
 
 function stopAllAnimationsAndFreeze() {
   // Zaustavi Auto petlju i grupne loop-ove
+  hardStop = true;
   trigger = false;
   if (timer) { clearTimeout(timer); timer = null; }
   animacijaLoop = false;
@@ -869,3 +1083,416 @@ function stopAllAnimationsAndFreeze() {
 
 
 //logika racunanja za dobitak i info deo za igraca i za auto broj rundi kao na html5
+
+
+// da li u toku padanja reeelova on vec spoji sta treba i zato odmah spaja kod veryHot 5???
+
+
+// // ===== ZAMENITE drawSlot FUNKCIJU =====
+// function drawSlot(){
+//     if(cashPlayer==0){
+//         alert("Nemas vise kredita, ubaci jos novca");
+//         dugme.classList.add("disabled");
+//         return;
+//     }
+    
+//     // Proveri da li ima dovoljno novca za bet (bez oduzimanja)
+//     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
+//     if(cashPlayer < totalBet){
+//         alert("Nemas dovoljno kredita za ovaj bet");
+//         if(autoMode) {
+//             stopAutoMode();
+//         }
+//         return;
+//     }
+        
+//     currentSpinId++;
+//     hardStop=false;
+//     for (const t of pendingTimers) clearTimeout(t);
+//     pendingTimers.clear();
+
+//     const rows=3;
+//     const cols=5;
+
+//     if(drawSymbols && Array.isArray(drawSymbols)){
+//         for(let simbol of drawSymbols){
+//             if(simbol._animationID) cancelAnimationFrame(simbol._animationID);
+//             simbol._isRunning=false;
+//         }
+//     }
+//     AktivneAnimacije.clear();
+    
+//     ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+//     ctxLine.clearRect(0, 0, canvasLine.width, canvasLine.height);
+//     ctxFront.clearRect(0, 0, canvasFront.width, canvasFront.height);
+//     ctx.fillRect(0,0,1,1);
+//     const cssW = canvas.clientWidth;
+//     const cssH = canvas.clientHeight;
+//     const offset = cssW / 100;
+//     let symWidth  = (cssW / 5) - (4 * offset);
+//     let symHeight = (cssH / 3) - (2 * offset);
+    
+//     drawSymbols = [];
+//     let i=0;
+//     for(let row=0;row<rows;row++){
+//         for(let col=0;col<cols;col++){
+//             const symbol=generateSymbol();
+//             let x;
+//             let y;
+//             const Column_fact = [null,5.5,4.8,4.7,4.6] 
+//             x= (col==0)
+//                 ? offset
+//                 : col*(symWidth+offset*(Column_fact[col] ?? 4.7))
+//             if(row==0)
+//                 y=offset;
+//             else{
+//                 y= row * (symHeight+offset*2.5);
+//             }
+//             //Pamcenje css piksela za kasnije resize za simbole 
+//             const nx= x/cssW;
+//             const ny= y/cssH;
+//             const nw=symWidth/cssW;
+//             const nh= symHeight/cssH;
+//                         drawSymbols.push({
+//                         id: symbol.id,
+//                         x: x,
+//                         y: y,
+//                         nx: nx,
+//                         ny : ny,
+//                         nw: nw,
+//                         nh : nh,
+//                         src: symbol.srcSprite,
+//                         srcStatic : symbol.src,
+//                         width: symWidth,
+//                         height: symHeight,
+//                         _isRunning: false,
+//                         _animationID : null,
+//                         _timeoutId: null,
+//                         _spinId: currentSpinId,
+//                         value: symbol.value
+//                     });
+               
+//            drawStaticLogo(drawSymbols[drawSymbols.length - 1]);
+//            i++;
+//         }
+//     }
+//     animacijaLoop=false;
+//     if (loopAnimacija) {
+//     clearTimeout(loopAnimacija);
+//     loopAnimacija = null;
+//     }
+//     dobitneLinije = [];
+//     console.log(dobitneLinije); 
+
+//     setTimeout(()=>{
+//         Spoji();
+//     },200);
+// }
+
+// // ===== ZAMENITE Spoji FUNKCIJU =====
+// function Spoji(){
+//     const mySpin = currentSpinId;
+//     let x1;
+//     let x2;
+//     let brojac = 0
+//     let j;
+//     //Idemo kroz redove 
+//     for (let m = 0;m<3;m++){
+//         if (mySpin !== currentSpinId) return;
+//         brojac=0;
+//         x1=drawSymbols[m*5]; //prvi element za svaki red
+//         j = m*5+1; // indeks za element nakon prvog u redu
+//         for (let i=0;i<4;i++){
+//             x2=drawSymbols[j];
+//             if(x1.id===x2.id){ // provera da li su isti 
+//                 j++;
+//                 brojac++
+//             }
+//         }
+        
+//         if(brojac >= 2){
+//             if (mySpin !== currentSpinId) return;
+//             let prom=5*m; // indeks za prvi element u nizu 
+          
+//             while(0<=brojac){
+//                 tempSimb=drawSymbols[prom];
+//                 dobitneLinije.push(tempSimb);
+//                 prom++; 
+//                 brojac--; 
+//             }           
+//         }
+//     }
+    
+//     if (mySpin !== currentSpinId) return;
+//     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
+//     var win = 0;
+    
+//     if(dobitneLinije.length > 0) {
+//         console.log("uso sam u granu za dobitne linije");
+//         const grupa = {};
+//         for(let simbol of dobitneLinije) {
+//             let y = simbol.y;
+//             let yPoz = y + (simbol.height / 2);
+//             if(!grupa[yPoz]) {
+//                 grupa[yPoz] = [];
+//             }
+//             grupa[yPoz].push(simbol);
+//         }
+        
+//         for(let yPoz in grupa) {
+//             var wintmp = 0;
+//             tmp = grupa[yPoz];
+//             let x = tmp.length;
+
+//             switch(tmp[0].value) {
+//                 case 1:
+//                     switch(x) {
+//                         case 3: wintmp = totalBet * 10; break;
+//                         case 4: wintmp = totalBet * 40; break;
+//                         case 5: wintmp = totalBet * 600; break;
+//                         default: wintmp = 0; break;    
+//                     }
+//                     break;
+//                 case 2:
+//                     switch(x) {
+//                         case 3: wintmp = totalBet * 8; break;
+//                         case 4: wintmp = totalBet * 20; break;
+//                         case 5: wintmp = totalBet * 100; break;
+//                         default: wintmp = 0; break;    
+//                     }
+//                     break;
+//                 case 3: 
+//                     switch(x) {
+//                         case 3: wintmp = totalBet * 4; break;
+//                         case 4: wintmp = totalBet * 10; break;
+//                         case 5: wintmp = totalBet * 40; break;
+//                         default: wintmp = 0; break;        
+//                     }
+//                     break;   
+//                 case 4:
+//                     switch(x) {
+//                         case 3: wintmp = totalBet * 2; break;
+//                         case 4: wintmp = totalBet * 6; break;
+//                         case 5: wintmp = totalBet * 20; break;
+//                         default: wintmp = 0; break;    
+//                     }
+//                     break;
+//                 default:
+//                     wintmp = 0;
+//             }
+//             win += wintmp;
+//         }
+        
+//         console.log("Win:" + win); 
+//         document.getElementById("win").textContent = win.toFixed(2);
+        
+//         // ODUZMI BET TEK KADA ZNAŠ DA IMAŠ DOBITAK
+//         cashPlayer -= totalBet;
+//         creditValue.textContent = cashPlayer.toFixed(2);
+        
+//         if(autoMode) {
+//             // U auto mode-u odmah transferiši novac
+//             MoneyTransfer(win, () => {
+//                 // Callback nakon transfera - nastavi auto mode
+//                 console.log("Transfer završen, nastavljam auto mode");
+//             });  
+//         } else {
+//             setButtonTakeWin(win);
+//         }
+        
+//         pokreniAnimacijuSvih();
+        
+//     } else {
+//         // NEMA DOBITNIH LINIJA - ODUZMI NOVAC TEK SADA
+//         cashPlayer -= totalBet;
+//         creditValue.textContent = cashPlayer.toFixed(2);
+        
+//         // Proveri da li ima dovoljno novca za sledeći spin u auto mode
+//         if (autoMode && cashPlayer < totalBet) {
+//             setTimeout(() => {
+//                 if(autoMode) {
+//                     alert("Nemaš više kredita!");
+//                     stopAutoMode();
+//                 }
+//             }, 1000);
+//         }
+//     }
+// }
+
+// // ===== MODIFIKOVANA MoneyTransfer FUNKCIJA =====
+// function MoneyTransfer(amount, callback) {
+//     if (isPayingOut) return;
+//     isPayingOut = true;
+
+//     // Ne prekidaj animacije ako je auto mode aktivan
+//     if (!autoMode) {
+//         stopAllAnimationsAndFreeze();
+//     }
+
+//     dugme.classList.add("disabled");    
+//     const winEl = winText;           
+//     const creditEl = creditValue;       
+
+//     const win0 = Math.min(amount, (Number(winEl.textContent) || 0));
+//     const cash0 = Number(creditEl.textContent) || 0;
+//     const target = Number(amount) || 0;
+
+//     const DURATION = 900;
+//     const start = performance.now();
+
+//     function tick(t) {
+//         if(hardStop && !autoMode) return;
+        
+//         const p = Math.min(1, (t - start) / DURATION);
+//         const moved = Math.round(target * p * 100) / 100;
+//         const newWin = (win0 - moved);
+//         const newBal = (cash0 + moved);
+
+//         winEl.textContent = newWin.toFixed(2);
+//         creditEl.textContent = newBal.toFixed(2);
+
+//         if (p < 1) {
+//             requestAnimationFrame(tick);
+//         } else {
+//             // Završi transfer
+//             winEl.textContent = (win0 - target).toFixed(2);
+//             creditEl.textContent = (cash0 + target).toFixed(2);
+//             cashPlayer += amount;
+//             console.log("MoneyTransfer završen");
+            
+//             if (!autoMode) {
+//                 dugme.classList.remove("disabled");
+//                 setButtonStart();
+//             }
+//             isPayingOut = false;
+            
+//             if (callback && typeof callback === 'function') {
+//                 callback();
+//             }
+//         }
+//     }
+
+//     requestAnimationFrame(tick);
+// }
+
+// // ===== DODAJTE OVE NOVE FUNKCIJE =====
+// function startAutoMode() {
+//     if (!autoMode) return;
+    
+//     // Proveri da li ima dovoljno novca
+//     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
+//     if (cashPlayer < totalBet) {
+//         alert("Nemaš dovoljno kredita!");
+//         stopAutoMode();
+//         return;
+//     }
+    
+//     console.log("Pokretam auto spin...");
+//     drawSlot();
+    
+//     // Sačekaj da se završe animacije i logika
+//     setTimeout(() => {
+//         if (!autoMode) return;
+        
+//         const numWinningLines = dobitneLinije.length;
+//         let delay;
+        
+//         // Odredi delay na osnovu broja dobitnih linija
+//         if (numWinningLines === 0) {
+//             delay = 1500; // Nema dobitnih linija
+//         } else if (numWinningLines <= 5) {
+//             delay = 6000; // 1 linija dobitna
+//         } else if (numWinningLines <= 10) {
+//             delay = 8000; // 2 linije dobitne  
+//         } else {
+//             delay = 11000; // 3+ linije dobitne
+//         }
+        
+//         console.log(`Čekam ${delay}ms pre sledećeg spina...`);
+        
+//         // Zakaži sledeći spin
+//         autoTimer = setTimeout(() => {
+//             if (autoMode) {
+//                 startAutoMode(); // Rekurzivni poziv
+//             }
+//         }, delay);
+        
+//     }, 1000);
+// }
+
+// function stopAutoMode() {
+//     console.log("Zaustavljam auto mode...");
+//     autoMode = false;
+//     dugme2.classList.remove("active");
+    
+//     // Očisti auto timer
+//     if (autoTimer) {
+//         clearTimeout(autoTimer);
+//         autoTimer = null;
+//     }
+    
+//     // Vrati dugmad u normalno stanje
+//     dugme.classList.remove("disabled");
+// }
+
+// // ===== ZAMENITE EVENT LISTENER ZA dugme2 =====
+// // UKLONITE POSTOJEĆI dugme2.addEventListener I DODAJTE OVAJ:
+// dugme2.addEventListener('click', () => {
+//     // Proveri da li ima dovoljno novca
+//     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
+//     if (cashPlayer < totalBet) {
+//         alert("Nemaš dovoljno novca za Auto mode");
+//         return;
+//     }
+    
+//     // Toggle auto mode
+//     autoMode = !autoMode;
+//     dugme2.classList.toggle("active");
+    
+//     if (autoMode) {
+//         console.log("Uključujem Auto mode...");
+//         dugme.classList.add("disabled");
+//         startAutoMode();
+//     } else {
+//         console.log("Isključujem Auto mode...");
+//         stopAllAnimationsAndFreeze();
+//         stopAutoMode();
+//     }
+// });
+
+// // ===== MODIFIKOVANA stopAllAnimationsAndFreeze FUNKCIJA =====
+// function stopAllAnimationsAndFreeze() {
+//     hardStop = true;
+    
+//     // Ne prekidaj auto mode osim ako nije eksplicitno zaustavljeno
+//     if (!autoMode) {
+//         trigger = false;
+//     }
+    
+//     if (timer) { clearTimeout(timer); timer = null; }
+//     animacijaLoop = false;
+//     if (loopAnimacija) { clearTimeout(loopAnimacija); loopAnimacija = null; }
+
+//     // Prekini sve pending setTimeout-ove iz animacija
+//     for (const t of pendingTimers) clearTimeout(t);
+//     pendingTimers.clear();
+
+//     // Prekini sve rAF animacije po simbolima
+//     if (drawSymbols && Array.isArray(drawSymbols)) {
+//         for (const simbol of drawSymbols) {
+//             simbol._isRunning = false;
+//             if (simbol._animationID) {
+//                 cancelAnimationFrame(simbol._animationID);
+//                 simbol._animationID = null;
+//             }
+//         }
+//     }
+//     AktivneAnimacije.clear();
+
+//     // Nacrtaj statične slike preko svih trenutnih simbola
+//     if (drawSymbols && Array.isArray(drawSymbols)) {
+//         for (const simbol of drawSymbols) {
+//             drawStaticLogo(simbol);
+//         }
+//     }
+// }

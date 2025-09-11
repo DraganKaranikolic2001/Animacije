@@ -81,6 +81,11 @@ img{
     transform: scale(1.1);
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
+#button.takeWin{
+    background-color: green;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
 .info-wrapper{
     gap: 10%;
     width: 30%;
