@@ -10,14 +10,16 @@ let startLoopTimer = null;     // tajmer iz pokreniAnimacijuSvih()
 let autoMode = false;
 let autoTimer = null;
 
-
+const page= document.getElementById("main-container");
+const dugme = document.getElementById("button");
+const dugme2 = document.getElementById("button2");
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
-    // { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
-    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
-    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
-    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
-    // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
+    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
+    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
+    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
+    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
+    { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
     { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
     { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
     { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
@@ -30,6 +32,7 @@ const symbols = [
     return symbols[randomIndex];
 }
 //------------------------------------------------------------------
+//Sve za cash
 let cashPlayer=500.00;
 let i =0;
 const betAmount = [1,2,5,10,20];
@@ -49,7 +52,20 @@ function decrement(){
      document.getElementById("bet").textContent=betAmount[i];
      document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
 }
+const moneyAdd= document.getElementById("cashAdd");
+moneyAdd.addEventListener("click", ()=>
+{
+    if(cashPlayer==0){
+        cashPlayer+=500;
+        dugme.classList.remove("disabled");
+        creditValue.textContent=cashPlayer.toFixed(2);
+    }
+        
 
+    else{
+        alert("Kad nemas love tad me klikni");
+    }
+})
 
 window.addEventListener('DOMContentLoaded', function(){
   document.getElementById("bet").textContent=betAmount[i];
@@ -58,19 +74,13 @@ window.addEventListener('DOMContentLoaded', function(){
   setButtonStart();
 })
 
-const page= document.getElementById("main-container");
-const dugme = document.getElementById("button");
-const dugme2 = document.getElementById("button2");
 
-// dugme.addEventListener("click",()=>{drawSlot();});
-
-document.addEventListener('keydown', function(event){
-    if(event.code==="Space")
-        drawSlot()
-})
-
-//Za info hub dugmici , akcije 
+//fullscreen, cash deo 
 const fullBtn = document.getElementById("fullscreenBtn");
+const creditSpan = document.getElementById("creditSpan");
+const cashSpan = document.getElementById("cashSpan");
+const creditValue= document.getElementById("credit");
+const winText = document.getElementById("win");
 fullBtn.addEventListener("click", () => {
     if(!document.fullscreenElement){
         stopAllAnimationsAndFreeze();
@@ -86,10 +96,7 @@ document.addEventListener('fullscreenchange', () => {
   resize();
   rescaleAndreDraw();
 });
-const creditSpan = document.getElementById("creditSpan");
-const cashSpan = document.getElementById("cashSpan");
-const creditValue= document.getElementById("credit");
-const winText = document.getElementById("win");
+
 cashSpan.addEventListener("click",()=>{
     cashSpan.style.color="white";
     creditSpan.style.color="gray";
@@ -101,17 +108,16 @@ creditSpan.addEventListener("click",()=>{
     creditValue.innerText=cashPlayer*100;
 })
 //--------------------------------------------------------------
-
-
+//Info dugmici
 const infoDiv= document.getElementById("help-screen");
 const infoBtn = document.getElementById("infoBtn");
 const helpContent = document.getElementById("help-content");
-
+const closeBtn = document.getElementById("close-help-screen");
 infoBtn.addEventListener("click", ()=>{
 
     infoDiv.style.visibility="visible";
 })
-const closeBtn = document.getElementById("close-help-screen");
+
 closeBtn.addEventListener("click",()=>{
     infoDiv.style.visibility="hidden";
     // console.log("Klik");
@@ -123,7 +129,7 @@ infoDiv.addEventListener("click",(e)=>{
     }
 })
 //-----------------------------------------------------------------------------------------
-
+//Canvasi
 const canvas = document.getElementById("canvas1");
 const ctx = canvas.getContext("2d");
 const canvasLine= document.getElementById("canvas2");
@@ -298,7 +304,7 @@ function handleResizeChange() {
 }
 // novi handleri umesto gore navedenih 
 window.addEventListener('resize', handleResizeChange);
-window.addEventListener('orientationchange', handleResizeChange);
+// window.addEventListener('orientationchange', handleResizeChange);
 document.addEventListener('fullscreenchange', handleResizeChange);
 
 window.addEventListener('load', () => {
@@ -335,6 +341,12 @@ function drawSlot(){
         dugme.classList.add("disabled");
         return;
     }
+    var totalBet = parseInt(document.getElementById("Totalbet").textContent);
+     if(cashPlayer<totalBet){
+        alert("Nemas dovoljno novca, smanji bet");
+        return;
+     }
+        
         
     
     currentSpinId++;
@@ -426,7 +438,7 @@ function drawSlot(){
 
 let dobitneLinije=[];
 let loopAnimacija=null;
-// Modifikovana Spoji funkcija
+
 function Spoji(){
     const mySpin = currentSpinId;
     let x1;
@@ -464,7 +476,7 @@ function Spoji(){
     if (mySpin !== currentSpinId) return;
     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
     var win = 0;
-    
+   
     // Prvo uvek oduzmi bet
     cashPlayer -= totalBet;
     creditValue.textContent = cashPlayer.toFixed(2);
@@ -548,169 +560,13 @@ function Spoji(){
         // Nema dobitnih linija
         // console.log("Nema dobitnih linija");
         
-        // Ako je auto mode, zakazuj sledeci spin
+
         if (autoMode) {
             scheduleNextAutoSpin(0); // 0 = nema dobitnih linija
         }
     }
 }
 
-
-// function Spoji(){
-//     // console.log("POZVANA FJA");
-//      const mySpin = currentSpinId;
-//     let x1;
-//     let x2;
-//     let brojac = 0
-//     let j;
-//     //Idemo kroz redove 
-//     for (let m = 0;m<3;m++){
-//         if (mySpin !== currentSpinId) return;
-//         brojac=0;
-//         x1=drawSymbols[m*5]; //prvi element za svaki red
-//         j = m*5+1; // indeks za element nakon prvog u redu
-//         for (let i=0;i<4;i++){
-//             x2=drawSymbols[j];
-//             if(x1.id===x2.id){ // provera da li su isti 
-//                 j++;
-//                 brojac++
-//             }
-//         }
-//         // console.log("brojac: " + brojac);
-//         if(brojac >= 2){
-//             if (mySpin !== currentSpinId) return;
-//             let prom=5*m; // indeks za prvi element u nizu 
-          
-//             while(0<=brojac){
-//                 tempSimb=drawSymbols[prom];
-//                 // startCanvasAnimation(1500,tempSimb);
-//                 dobitneLinije.push(tempSimb); // pusujem u niz sve simbole koji su dobitni sa svim atributima {src,x,y,width,height,id}
-//                 prom++; // prelazimo na sledeci koji je dobitan
-//                 brojac--; 
-//                 // console.log("prom kroz while: " + prom);
-//             }
-//             // console.log(dobitneLinije);           
-//         }
-//         else{
-//             // console.log("nema nista");
-//         }
-  
-//     }
-//     if (mySpin !== currentSpinId) return;
-//     var totalBet =parseInt(document.getElementById("Totalbet").textContent);
-//     var win=0;
-//      if(dobitneLinije.length>0)
-//             {
-//                 console.log("uso sam u granu za dobitne linije");
-//                 const grupa={}
-//                 for(let simbol of dobitneLinije)
-//                 {
-//                     let y=simbol.y;
-//                     let yPoz= y+(simbol.height/2);
-//                     if(!grupa[yPoz]){
-//                         grupa[yPoz]=[];
-//                     }
-//                     grupa[yPoz].push(simbol);
-//                 }
-                
-//                 // console.log(grupa);
-//                 for(let yPoz in grupa)
-//                 {
-//                     var wintmp=0;
-//                     tmp=grupa[yPoz];
-//                     let x= tmp.length;
-
-//                     switch(tmp[0].value){
-//                         case 1:
-//                             switch(x){
-//                                 case 3 :
-//                                     wintmp=totalBet*10;
-//                                     break;
-//                                 case 4: 
-//                                     wintmp=totalBet*40;
-//                                     break;
-//                                 case 5:
-//                                     wintmp=totalBet*600;
-//                                     break;
-//                                 default:
-//                                     wintmp=0;
-//                                     break;    
-//                             }
-//                         break;
-//                         case 2:
-//                             switch(x){
-//                                 case 3 :
-//                                     wintmp=totalBet*8;
-//                                     break;
-//                                 case 4: 
-//                                     wintmp=totalBet*20;
-//                                     break;
-//                                 case 5:
-//                                     wintmp=totalBet*100;
-//                                     break;
-//                                 default:
-//                                     wintmp=0;
-//                                     break;    
-//                             }
-//                         break;
-//                         case 3: 
-//                             switch(x){
-//                                 case 3 :
-//                                     wintmp=totalBet*4;
-//                                     break;
-//                                 case 4: 
-//                                     wintmp=totalBet*10;
-//                                     break;
-//                                 case 5:
-//                                     wintmp=totalBet*40;
-//                                     break;
-//                                 default:
-//                                     wintmp=0;
-//                                     break;        
-//                             }
-//                         break;   
-//                         case 4:
-//                             switch(x){
-//                                 case 3 :
-//                                     wintmp=totalBet*2;
-//                                     break;
-//                                 case 4: 
-//                                     wintmp=totalBet*6;
-//                                     break;
-//                                 case 5:
-//                                     wintmp=totalBet*20;
-//                                     break;
-//                                 default:
-//                                     wintmp=0;
-//                                     break;    
-//                             }
-//                         break;
-//                         default:
-//                             wintmp=0;
-//                     }
-//                     win+=wintmp;
-//                 }
-//             console.log("Win:" + win); 
-           
-            
-//             document.getElementById("win").textContent=win.toFixed(2);    
-//              if(trigger==true)
-//                 {
-//                   MoneyTransfer(win);  
-//                 }   
-//             else{
-//                 setButtonTakeWin(win);
-//             }    
-//                 pokreniAnimacijuSvih();
-//             }
-//       else{
-//         cashPlayer-=totalBet;
-//         creditValue.textContent=cashPlayer.toFixed(2);
-//       } 
-           
-        
-    
-// }
 dugme2.addEventListener('click', () => {
     // Proveri da li igrac ima dovoljno novca
     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
@@ -727,7 +583,7 @@ dugme2.addEventListener('click', () => {
 });
 
 function setButtonStart(){
-      stopAllAnimationsAndFreeze();
+    stopAllAnimationsAndFreeze();
     dugme.textContent="Start";
     dugme.classList.remove("takeWin");
     dugme.onclick=()=> drawSlot();
@@ -741,8 +597,8 @@ function setButtonTakeWin(amount) {
   trigger=true;   
   dugme.onclick = () => MoneyTransfer(amount);
 }
-let isPayingOut = false;
-
+//-------------------------------------------------------------
+//Animacije i linije
 function pokreniAnimacijuSvih(){ 
     
     const mySpin = currentSpinId;
@@ -852,21 +708,6 @@ function pokreniAnimLoop() {
              x= cssW-grupa[0].width/2-grupa[0].x;
             endX=grupa[duzina-1].x+grupa[0].width;
         }
-        
-        // console.log("ENDY" + endY);
-        // console.log("endy" + grupa[0].width/2);
-        // // console.log("y : " + y);
-        // console.log("yPoz : " + yPoz); 
-        // console.log("start x" + startX);
-        // console.log("end x" + endX);
-        // console.log("ovo je i !!! : " +  i);
-
-        // console.log(ctx.lineWidth);
-        
-      
-        
-        // console.log("Y: " + y);
-        // console.log("Grupa: " + grupa);
 
         // Animacija svih simbola u toj grupi
         for (let simbol of grupa) {
@@ -1045,13 +886,6 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
                 ctxFront.stroke();
             }            
 
-             
-        
-        
-
-       
-   
-
         const sveZavrsene = grupa.every(simbol => !simbol._isRunning || simbol._spinId !== mySpin);
 
         if (sveZavrsene) {
@@ -1087,15 +921,10 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
     }
     requestAnimationFrame(crtaj);
 }
+//-----------------------------------------------------------------
 let trigger=false;
 let timer = null;
-
-
-//takodje moze se otici u minus ukoliko imam tipa jos 25credita a ja gemblujem 100 , on ce odrati igru i ucicem u minus 75
-
-// da li u toku padanja reeelova on vec spoji sta treba i zato odmah spaja kod veryHot 5???
-
-
+let isPayingOut = false;
 function MoneyTransfer(amount)
 {
      if (isPayingOut) return;
@@ -1141,9 +970,6 @@ function MoneyTransfer(amount)
     }
     requestAnimationFrame(tick);
 }
-
-
-// Nova funkcija za automatski transfer novca
 function MoneyTransferAuto(amount) {
     if (isPayingOut) return;
     isPayingOut = true;
@@ -1191,7 +1017,6 @@ function MoneyTransferAuto(amount) {
 
     requestAnimationFrame(tick);
 }
-
 // Funkcija za zakazivanje sledeceg auto spina
 function scheduleNextAutoSpin(numWinningLines) {
     if (!autoMode) return;
@@ -1207,9 +1032,8 @@ function scheduleNextAutoSpin(numWinningLines) {
     
     let delay;
     
-    // Odredi delay na osnovu broja dobitnih linija
     if (numWinningLines === 0) {
-        delay = 1300; // Nema dobitnih linija - brz spin
+        delay = 1300; // Nema dobitnih linija
     } else if (numWinningLines <= 5) {
         delay = 1500; // 1 dobitna linija 
     } else if (numWinningLines <= 10) {
@@ -1227,7 +1051,6 @@ function scheduleNextAutoSpin(numWinningLines) {
         }
     }, delay);
 }
-
 // Funkcija za pokretanje auto mode-a
 function startAutoMode() {
     console.log("Pokretam auto mode...");
@@ -1238,7 +1061,6 @@ function startAutoMode() {
     // Pokreni prvi spin
     drawSlot();
 }
-
 // Funkcija za zaustavljanje auto mode-a
 function stopAutoMode() {
     console.log("Zaustavljam auto mode...");
@@ -1261,10 +1083,6 @@ function stopAutoMode() {
     
     setButtonStart();
 }
-
-// Modifikovan pokreniAnimacijuSvih - pocetne animacije svih simbola
-
-
 // Modifikovan stopAllAnimationsAndFreeze da radi sa auto modom
 function stopAllAnimationsAndFreeze() {
     hardStop = true;
@@ -1302,3 +1120,4 @@ function stopAllAnimationsAndFreeze() {
         hardStop = false;
     }, 100);
 }
+// da li u toku padanja reeelova on vec spoji sta treba i zato odmah spaja kod veryHot 5???
