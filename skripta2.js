@@ -1,4 +1,13 @@
 // const { StrictMode } = require("react");
+// === Clear sessionStorage samo na REFRESH (pre svega ostalog!) ===
+(() => {
+  const n = performance.getEntriesByType?.('navigation')?.[0];
+  if ((n && n.type === 'reload') || (!n && performance?.navigation?.type === 1)) {
+    sessionStorage.clear();
+  }
+})();
+
+
 
 const AktivneAnimacije = new Map();
 //Globalni ID spina i set za tajmere
@@ -13,16 +22,17 @@ let autoTimer = null;
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
+const gambleBtn = document.getElementById("gambleBtn");
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
-    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
-    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
-    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
+    // { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
+    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
+    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
     { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
     { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
     { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
-    { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
-    { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
+    // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
+    // { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
     // { id:9 , src : "symbols/9.png" ,srcSprite:"sprites/9.png" ,width: 260, height: 260},
     // { id:10 , src : "symbols/10.png" ,srcSprite:"sprites/10.png" ,width: 260, height: 260}
 ];
@@ -33,6 +43,63 @@ const symbols = [
 }
 //------------------------------------------------------------------
 //Sve za cash
+// window.addEventListener('beforeunload', () => {
+//   sessionStorage.clear();
+// });
+const CASH_PLAYER_KEY = 'slot:cashplayer';
+const RET_KEY = 'slot:returnTo';
+const BET_KEY = 'slot:betlines';
+const SYMBOL_KEY= 'slot:symbols';
+function loadBalance_Bet(){
+    const s = sessionStorage.getItem(CASH_PLAYER_KEY);
+    if(s!=null) cashPlayer=Number(s);
+    const b = sessionStorage.getItem(BET_KEY);
+    if(b!=null) i=Number(b);
+    const raw = sessionStorage.getItem(SYMBOL_KEY);
+    if(!raw)
+    {
+        drawSymbols=[]
+        return;
+    }
+    const symb =JSON.parse(raw); 
+    drawSymbols= symb.map(s=>({
+        id: s.id,
+    x: Number(s.x),
+    y: Number(s.y),
+    nx: Number(s.nx),
+    ny: Number(s.ny),
+    nw: Number(s.nw),
+    nh: Number(s.nh),
+    src: s.src,               
+    srcStatic: s.srcStatic,   
+    width: Number(s.width),
+    height: Number(s.height),
+    value: s.value,
+    _isRunning: false,
+    _animationID: null,
+    _timeoutId: null,
+    _spinId: currentSpinId 
+    }));
+}
+function saveBalance_Bet(){
+    sessionStorage.setItem(CASH_PLAYER_KEY,String(cashPlayer));
+    sessionStorage.setItem(BET_KEY,String(i));
+    sessionStorage.setItem(SYMBOL_KEY,JSON.stringify(drawSymbols));
+}
+document.addEventListener('DOMContentLoaded', () => {
+    loadBalance_Bet();
+    document.getElementById("bet").textContent=betAmount[i];
+    document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
+    document.getElementById("credit").textContent=cashPlayer.toFixed(2);
+    console.log(drawSymbols);
+    resize();
+    if(Array.isArray(drawSymbols) && drawSymbols.length){
+        rescaleAndreDraw();
+    }
+  
+    setButtonStart();
+    console.log(i);
+  });
 let cashPlayer=500.00;
 let i =0;
 const betAmount = [1,2,5,10,20];
@@ -66,15 +133,6 @@ moneyAdd.addEventListener("click", ()=>
         alert("Kad nemas love tad me klikni");
     }
 })
-
-window.addEventListener('DOMContentLoaded', function(){
-  document.getElementById("bet").textContent=betAmount[i];
-  document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
-  document.getElementById("credit").textContent=cashPlayer.toFixed(2);
-  setButtonStart();
-})
-
-
 //fullscreen, cash deo 
 const fullBtn = document.getElementById("fullscreenBtn");
 const creditSpan = document.getElementById("creditSpan");
@@ -245,6 +303,7 @@ function resize() {
         x.style.height=(scaleLabel*0.17) + "px";
         x.style.fontSize=(scaleLabel*0.08) + "px";
   })
+  gambleBtn.style.fontSize=(scaleLabel*0.07) + "px";
 
   const infoBet = document.querySelectorAll(".infoBet");
   infoBet.forEach(x=>{
@@ -346,9 +405,6 @@ function drawSlot(){
         alert("Nemas dovoljno novca, smanji bet");
         return;
      }
-        
-        
-    
     currentSpinId++;
     hardStop=false;
     for (const t of pendingTimers) clearTimeout(t);
@@ -483,7 +539,7 @@ function Spoji(){
     
     if(dobitneLinije.length > 0) {
         // console.log("Pronadjena dobitna linija");
-        trigger=false;
+        // trigger=false;
         const grupa = {};
         for(let simbol of dobitneLinije) {
             let y = simbol.y;
@@ -546,13 +602,25 @@ function Spoji(){
         pokreniAnimacijuSvih();
         
             setTimeout(() => {
+               
             if (autoMode) {
                 MoneyTransferAuto(win);
             } else {
+                 gambleBtn.classList.remove("disabled");
                 setButtonTakeWin(win);
             }
         }, 2800); // Ceka da se zavrse pocetne animacije
+        gambleBtn.addEventListener('click', ()=>{
+            saveBalance_Bet();
+            sessionStorage.setItem(RET_KEY,location.href);
+            const stake = win;
+            const url = new URL('/Zadatak11/zadatak.html',location.origin);
+            url.searchParams.set('stake',String(stake));
 
+            location.href=url.toString();
+        })
+
+        
         
         // Zakazuj transfer novca nakon sto se zavrse animacije
                 
@@ -595,7 +663,10 @@ function setButtonTakeWin(amount) {
   dugme.classList.add("takeWin"); 
 
   trigger=true;   
-  dugme.onclick = () => MoneyTransfer(amount);
+  dugme.onclick = () => {
+    MoneyTransfer(amount)
+    gambleBtn.classList.add("disabled");
+};
 }
 //-------------------------------------------------------------
 //Animacije i linije
@@ -1053,11 +1124,10 @@ function scheduleNextAutoSpin(numWinningLines) {
 }
 // Funkcija za pokretanje auto mode-a
 function startAutoMode() {
-    console.log("Pokretam auto mode...");
     autoMode = true;
     dugme.classList.add("disabled");
     dugme2.classList.add("active");
-    
+    gambleBtn.classList.add("disabled");
     // Pokreni prvi spin
     drawSlot();
 }
@@ -1067,7 +1137,7 @@ function stopAutoMode() {
     autoMode = false;
     dugme2.classList.remove("active");
     dugme.classList.remove("disabled");
-    
+     gambleBtn.classList.remove("disabled");
     // Ocisti sve auto tajmere
     if (autoTimer) {
         clearTimeout(autoTimer);

@@ -32,7 +32,7 @@ html, body {
 #canvas1{
     z-index: 1;
 }
-canvas{
+#canvas1,#canvas2,#canvas3{
     position: absolute;
     pointer-events: none;
 }
@@ -114,7 +114,7 @@ img{
     align-items: center;
     text-align: center;
 }
-#button.disabled{
+#button.disabled,#gambleBtn.disabled{
     opacity: 0.6;         
     pointer-events: none;
 }

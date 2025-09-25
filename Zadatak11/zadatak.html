@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="zadatak.css">
+<link rel="shortcut icon" href="#">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gamble Game</title>
+</head>
+
+<body>
+        <div class="gamble-page" id="main-page" style="width: 100%; height: 100%; position: absolute; pointer-events: all;">
+            <img  id ="pictureGamble" src="images/gamble-background-min.png">
+            <div class="top-side">
+                <p class="history-title" id="history">HISTORY:</p>
+                <div class="history-card" id="history-card"></div>
+            </div>
+            <canvas id="canvas1"></canvas>
+            <div class="gamble-box" id="gamble-box-id">
+                <audio id="gif-sound"></audio>
+                <img class="gamble-card-stack"  id="gamble-card" src="images/gamble/cards-min.png">
+                <div class="card-container" id="flip-card">
+                    <div class="card-inner" id="card-inner">
+                        <div class="card-front">
+                            <img src="images/gamble/redblack.gif" id="card-front-img" />
+                        </div>
+                        <div class="card-back">
+                            <img src="" id="card-back-img" />
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="gamble-info" id="gamble-info-id">
+                    <div class="gamble-column">
+                        <p class="gamble-info-label" id="attempts-lang">ATTEMPTS</p>
+                        <p class="gamble-info-amount" id="gamble-attempts">5</p>
+                    </div>
+                    <div class="gamble-column">
+                        <p class="gamble-info-label" id="gamble-win-lang">GAMBLE TO WIN</p>
+                        <p class="gamble-info-amount" id="gamble-to-win"></p>
+                    </div>
+                    <div class="gamble-column">
+                        <p class="gamble-info-label" id="gamble-win-text">EARNINGS</p>
+                        <p class="gamble-info-amount" id="gamble-win"></p>
+                    </div>
+            </div>
+            <div class="gamble-button button middle" id="black-button" onclick="clickBlack()">
+                <audio id="black-audio"></audio>
+                BLACK</div>
+            <div class="gamble-button button middle" id="red-button" onclick="clickRed()">
+                <audio id="red-audio"></audio>
+                RED</div>
+            
+             <div class="gamble-button button middle hidden" id="win-button" onclick="clickTakeWin()">
+                <audio id="take-win-audio"></audio>
+                TAKE WIN</div>
+                <div class="info-volume-wrapper">
+                    <div class="info-button button middle" id="magic-button" >
+                        <audio id="info-audio"></audio>
+                        <i >i</i>
+                    </div>    
+                    <div class="settingsBtn button middle" id="settingsBtn" >
+                        <i id="setting" class="fa fa-cog" aria-hidden="true"></i>
+                    </div>
+                </div>
+                
+                <div id="myModal" class="hidden modalSettings">
+                    <div class="modal-content ">
+                        <span class="closeSettings">&times;</span>
+
+                        <div class="buttonMute button" id="mutebtn" onclick="AudioHandler.toggleMode()">
+                        <!-- <img id="mute-icon" src="images/sound-off.png"> -->
+                            <i  id="volume" class="fa fa-volume-off" aria-hidden="true"></i>
+                        </div>    
+
+                        <div class="containerForLanguage">
+                        <label id="labelModal" for="language" style="color: white;">Choose language:</label>
+                        <select id="language">
+                        <option value="en" class="active">English</option>
+                        <option value="sr" >Srpski</option>
+                        </select> 
+                         </div>
+                        
+                    </div>
+                </div>
+            
+            <div class="modal-wrapper">
+                <div class="modal hidden" id="modal">
+                    <h2 id="titleModal">Game Rules - Double or Nothing: Red or Black</h2>
+                    <p id="p1">-After each win in the base game, the player gets a chance to <strong>double the winnings</strong> through the "Red or Black" mini-game.</p>
+                    <p id="p2">-The player chooses whether the card will be <strong>red (hearts/diamonds)</strong> or <strong>black (spades/clubs)</strong>.</p>
+                    <p id="p3">-If the guess is correct, the winnings are <strong>doubled</strong> and the player can try again.</p>
+                    <p id="p4">-If the guess is <strong>wrong</strong>, the player loses <strong>the entire winnings</strong> from the previous game.</p>
+                    <p id="p5">-A maximum of <strong>5 successful doubling attempts</strong> is allowed per single win.</p>
+                    <p id="p6">-The player can choose to stop and keep the current winnings at any time.</p>
+                    <p id="p7"><em>Play responsibly. One wrong guess means losing the entire winnings.</em></p>
+                    <button class="x" id="close">&times;</button>
+                </div>
+                <div class="overlay hidden" id="overlay"></div>
+            </div>
+            <!-- <div id="blackout"></div>
+            <div class="intro">
+                <h2 class="intro-h2 fade-in" style="color: white;">Da li zelite zvuk?</h2>
+                <div class="intro-wrapper fade-in">
+                    <div class="intro-button-yes">Da</div>
+                    <div class="intro-button-no">Ne</div>
+                </div>
+            </div> -->
+            
+            
+        </div>
+        <script src="handlers.js"></script>
+        <script src="languages.js"></script>
+        <script src="sound.js"></script>
+         <script src="landspace.js"></script>
+        <script src="portrait.js"></script>
+        <script src="animations.js"></script>
+        <script src="logika.js"></script>
+    </body>    
+</html>
+
+
+
