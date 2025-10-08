@@ -11,257 +11,292 @@
     <div class="main-container" id="main-container">
       
         <img src="images/main-background.png" alt="Pozadina" class="fullscreen-bg">
-        <div class="gamble-container">
-          <canvas id="canvas1"></canvas>
-          <canvas id="canvas2"></canvas>
-          <canvas id="canvas3"></canvas>
-       
-        <div class="info">
-          <div class="info-wrapper flex-center">
-            <div class="muteBtn flex-center">
-              <i id="volume" class="fa fa-volume-off fa-2x"></i>
-            </div>
-            <div class="fullscreenButton">
-              <i id="fullscreenBtn" class=" fa fa-arrows-alt fa-2x cursor" aria-hidden="true" ></i>
-            </div>
-            <div class="infoButton">
-              <i id="infoBtn" class="fa fa-info-circle fa-2x cursor" aria-hidden="true"></i>
-            </div>
-            <div>
-                <i id="cashAdd"class="fa fa-money fa-2x cursor" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="info-labels flex-center">
-            <ul>
-              <li>
-                <span id="cashSpan">Cash</span>
-                <span></span>
-                <span id="creditSpan">Credit</span>
-              </li>
-              <li>
-                <span id="credit"></span>
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span id="winSpan">WIN</span>
-              </li>
-              <li>
-                <span id="win">0.00</span>
-              </li>
-            </ul>
-            <ul>
-              <li>
-                <span id="betSpan">Total bet</span>
-              </li>
-              <li>
-                <span id="Totalbet"></span>
-              </li>
-            </ul>
-          </div>
-          <div class="button-wrapper ">
-            <div class="betLine-wrapper ">
-              <div class="textInfo">
-                <div  style="font-size: 10px; padding-bottom: 0.8vh;">FIXED <br>LINES</div>
-               <div style="font-size: 10px;">BET</div> 
-              </div>
-               <div>
-                <div class="infoForLines infoBet">
-                  <div class="lines-wrapper forBet ">
-                      <div style="color: transparent;">+</div>
-                      <div id="numofLines">5</div>
-                      <div style="color: transparent">-</div>
-                    </div>
-              </div>
-              <div class="infoForBet flex-center infoBet">
-                <div class="bet-button-wrapper forBet ">
-                  <div style="color: green; font-weight: bold;" onclick="increment()" class="cursor">+</div>
-                  <div id="bet" style="color: white;"></div>
-                  <div style="color: red; font-weight: bold; "onclick="decrement()" class="cursor">-</div>
-                </div>
-              </div>
-               </div>
-                
-            </div>
-            
-            <button id="button" class="flex-center buttonGamble">Start</button>
-            <button id="button2" class="flex-center buttonGamble">Auto</button>
-            <button id="gambleBtn" class="flex-center buttonGamble disabled">Gamble</button>
-          </div>
-          
-        </div>
-        <div id="help-screen">
-          <div id="help-content">
-            <h2 id="game-rules-title">Game rules</h2>
-            <div id="game-rules">
-              <p id="game-rules-text">All pays are left to right, beginning with the leftmost reel, except scatters symbols. Scatter symbols <img id="small-dollar" src="symbols/9.png"> pay at any position on screen and scatter symbols
-                 <img id="small-star" src="symbols/10.png"> pay at anywhere on 1st, 3rd and 5th reels. Highest payline win only paid. The total bet in a slot game is calculated by multiplying the number of active paylines by the bet per line.
-                <span id="game-rules-text-autoplay">In autoplay mode, the slot game will automatically collect any winnings you earn on each spin, and add them to your total balance.
-                <span id="game-rules-gamble-text">If the gamble feature interrupts the autoplay in a slot game, the autoplay will stop and the game will prompt you to play the gamble feature.</span></span></p>
-              <div id="game-lines">
-                <img src="images/rules.png">
-              </div>
-              <div id="table">
-                        <div class="col">
-                            <div class="cell">
-                                <img src="symbols/1.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="left-top-5" internal="60000">600.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="left-top-4" internal="4000">40.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="left-top-3" internal="1000">10.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x2:
-                                        <span id="left-top-2" internal="200">2.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/3.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="left-mid-5" internal="10000">100.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="left-mid-4" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="left-mid-3" internal="800">8.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/7.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="left-mid2-5" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="left-mid2-4" internal="600">6.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="left-mid2-3" internal="200">2.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/8.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="left-bot-5" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="left-bot-4" internal="600">6.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="left-bot-3" internal="200">2.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="cell">
-                                <img src="symbols/0.png">
-                                <p id="substitute-text">On 2nd, 3rd and 4th reels substitutes for all symbols on the same reel except <img id="small-dollar" src="symbols/9.png"> and <img id="small-star" src="symbols/10.png">.</p>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/10.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="middle-mid-3" internal="2000">20.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/9.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="middle-bot-5" internal="10000">100.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="middle-bot-4" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="middle-bot-3" internal="300">3.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="cell">
-                                <img src="symbols/2.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="right-top-5" internal="10000">100.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="right-top-4" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="right-top-3" internal="800">8.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/4.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="right-mid-5" internal="4000">40.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="right-mid-4" internal="1000">10.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="right-mid-3" internal="400">4.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/5.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="right-mid2-5" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="right-mid2-4" internal="600">6.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="right-mid2-3" internal="200">2.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="cell">
-                                <img src="symbols/6.png">
-                                <div class="value-wrapper">
-                                    <p style="font-size: 27.378px;">x5:
-                                        <span id="right-bot-5" internal="2000">20.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x4:
-                                        <span id="right-bot-4" internal="600">6.00</span>
-                                    </p>
-                                    <p style="font-size: 27.378px;">x3:
-                                        <span id="right-bot-3" internal="200">2.00</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-            </div>
-
-        </div>  
-      <div id="close-help-screen" style="font-size: 38.4px; ">
-            <i id="close-btn" class="fa fa-times" aria-hidden="true"></i>
-      </div>
-    
-      
         
+        <div class="gamble-container">
+            <canvas id="canvas1"></canvas>
+            <canvas id="canvas2"></canvas>
+            <canvas id="canvas3"></canvas>
+       
+            <div class="info">
+                <div class="info-wrapper flex-center">
+                    <div class="muteBtn flex-center">
+                        <i id="volume" class="fa fa-volume-off fa-2x"></i>
+                    </div>
+                    <div class="fullscreenButton">
+                        <i id="fullscreenBtn" class=" fa fa-arrows-alt fa-2x cursor" aria-hidden="true" ></i>
+                    </div>
+                    <div class="infoButton">
+                        <i id="infoBtn" class="fa fa-info-circle fa-2x cursor" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <i id="cashAdd"class="fa fa-money fa-2x cursor" aria-hidden="true"></i>
+                    </div>
+                </div>
+                
+                <div class="info-labels flex-center">
+                    <ul>
+                        <li>
+                            <span id="cashSpan">Cash</span>
+                            <span></span>
+                            <span id="creditSpan">Credit</span>
+                        </li>
+                        <li>
+                            <span id="credit"></span>
+                        </li>
+                    </ul>
+                    <ul>
+                        <li>
+                            <span id="winSpan">WIN</span>
+                        </li>
+                        <li>
+                            <span id="win">0.00</span>
+                        </li>
+                    </ul>
+                    <ul>
+                        <li>
+                            <span id="betSpan">Total bet</span>
+                        </li>
+                        <li>
+                            <span id="Totalbet"></span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="button-wrapper ">
+                    <div class="betLine-wrapper ">
+                        <div class="textInfo">
+                            <div  style="font-size: 10px; padding-bottom: 0.8vh;">FIXED <br>LINES</div>
+                            <div style="font-size: 10px;">BET</div> 
+                        </div>
+                        
+                        <div>
+                            <div class="infoForLines infoBet">
+                                <div class="lines-wrapper forBet ">
+                                    <div style="color: transparent;">+</div>
+                                    <div id="numofLines">5</div>
+                                    <div style="color: transparent">-</div>
+                                </div>
+                            </div>
+                            
+                            <div class="infoForBet flex-center infoBet">
+                                <div class="bet-button-wrapper forBet ">
+                                    <div style="color: green; font-weight: bold;" onclick="increment()" class="cursor">+</div>
+                                    <div id="bet" style="color: white;"></div>
+                                    <div style="color: red; font-weight: bold; "onclick="decrement()" class="cursor">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="button" class="flex-center buttonGamble">Start</button>
+                    <button id="autoscreen" class="flex-center buttonGamble">Auto </button>
+                    <button id="gambleBtn" class="flex-center buttonGamble disabled">Gamble</button>
+                </div>
+            </div>
             
+            <div id="help-screen">
+                <div id="help-content">
+                    <h2 id="game-rules-title">Game rules</h2>
+                    <div id="game-rules">
+                        <p id="game-rules-text">All pays are left to right, beginning with the leftmost reel, except scatters symbols. Scatter symbols <img id="small-dollar" src="symbols/9.png"> pay at any position on screen and scatter symbols
+                            <img id="small-star" src="symbols/10.png"> pay at anywhere on 1st, 3rd and 5th reels. Highest payline win only paid. The total bet in a slot game is calculated by multiplying the number of active paylines by the bet per line.
+                            <span id="game-rules-text-autoplay">In autoplay mode, the slot game will automatically collect any winnings you earn on each spin, and add them to your total balance.
+                            <span id="game-rules-gamble-text">If the gamble feature interrupts the autoplay in a slot game, the autoplay will stop and the game will prompt you to play the gamble feature.</span></span></p>
+                        
+                        <div id="game-lines">
+                            <img src="images/rules.png">
+                        </div>
+                        
+                        <div id="table">
+                            <div class="col">
+                                <div class="cell">
+                                    <img src="symbols/1.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="left-top-5" internal="60000">600.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="left-top-4" internal="4000">40.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="left-top-3" internal="1000">10.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x2:
+                                            <span id="left-top-2" internal="200">2.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/3.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="left-mid-5" internal="10000">100.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="left-mid-4" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="left-mid-3" internal="800">8.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/7.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="left-mid2-5" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="left-mid2-4" internal="600">6.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="left-mid2-3" internal="200">2.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/8.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="left-bot-5" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="left-bot-4" internal="600">6.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="left-bot-3" internal="200">2.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="cell">
+                                    <img src="symbols/0.png">
+                                    <p id="substitute-text">On 2nd, 3rd and 4th reels substitutes for all symbols on the same reel except <img id="small-dollar" src="symbols/9.png"> and <img id="small-star" src="symbols/10.png">.</p>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/10.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="middle-mid-3" internal="2000">20.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/9.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="middle-bot-5" internal="10000">100.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="middle-bot-4" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="middle-bot-3" internal="300">3.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col">
+                                <div class="cell">
+                                    <img src="symbols/2.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="right-top-5" internal="10000">100.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="right-top-4" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="right-top-3" internal="800">8.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/4.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="right-mid-5" internal="4000">40.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="right-mid-4" internal="1000">10.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="right-mid-3" internal="400">4.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/5.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="right-mid2-5" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="right-mid2-4" internal="600">6.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="right-mid2-3" internal="200">2.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <img src="symbols/6.png">
+                                    <div class="value-wrapper">
+                                        <p style="font-size: 27.378px;">x5:
+                                            <span id="right-bot-5" internal="2000">20.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x4:
+                                            <span id="right-bot-4" internal="600">6.00</span>
+                                        </p>
+                                        <p style="font-size: 27.378px;">x3:
+                                            <span id="right-bot-3" internal="200">2.00</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> 
+                   <div id="close-help-screen" style="font-size: 38.4px; ">
+                         <i id="close-btn" class="fa fa-times" aria-hidden="true"></i>
+                   </div> 
+            </div>
+            
+          
+            <div id="autoScreen">
+                <div id="autoContent" >
+                    <div id="autoRounds" class="autoDiv">
+                        <label>Rounds</label>
+                         <div class="infoForRounds flex-center ">
+                                <div class="bet-button-wrapper forRound ">
+                                    <div style="color: green; font-weight: bold;" onclick="incrementAuto()" class="cursor">+</div>
+                                    <div id="rounds" style="color: white;"></div>
+                                    <div style="color: red; font-weight: bold; "onclick="decrementAuto()" class="cursor">-</div>
+                                </div>
+                            </div>
+                    </div>
+                    <div id="autoLimit" class="autoDiv">
+                        <label>Limit Money</label>
+                        <input id="" type="number">
+                    </div>
+                    <div id="autoStop"class="autoDiv">
+                        <label>Stop on win</label>
+                        <input type="checkbox" id="checkbox" value="1">
+                    </div>
+                    <button id="button2" class="flex-center">Start Gamble</button>
+
+                </div>
+                 <div id="close-auto-screen" style="font-size: 38.4px; ">
+                         <i id="close-auto-btn" class="fa fa-times" aria-hidden="true"></i>
+                </div> 
+            </div>
+            
+        </div>
     </div>
-  <script src="skripta2.js"></script>  
+    
+    <script src="skripta2.js"></script>  
 </body>
 </html>

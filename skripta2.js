@@ -5,10 +5,7 @@
   if ((n && n.type === 'reload') || (!n && performance?.navigation?.type === 1)) {
     sessionStorage.clear();
   }
-})();
-
-
-
+})();   
 const AktivneAnimacije = new Map();
 //Globalni ID spina i set za tajmere
 let currentSpinId = 0;
@@ -18,20 +15,21 @@ let hardStop = false;          // globalni kill-switch
 let startLoopTimer = null;     // tajmer iz pokreniAnimacijuSvih()
 let autoMode = false;
 let autoTimer = null;
-
+let maxAutoRounds = 0;        
+let currentAutoRound = 0; 
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
 const gambleBtn = document.getElementById("gambleBtn");
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
-    // { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
+    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
     // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
     // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
-    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
-    { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
-    { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
-    // { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
+    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
+    // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
+    // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
+    { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
     // { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
     // { id:9 , src : "symbols/9.png" ,srcSprite:"sprites/9.png" ,width: 260, height: 260},
     // { id:10 , src : "symbols/10.png" ,srcSprite:"sprites/10.png" ,width: 260, height: 260}
@@ -43,9 +41,6 @@ const symbols = [
 }
 //------------------------------------------------------------------
 //Sve za cash
-// window.addEventListener('beforeunload', () => {
-//   sessionStorage.clear();
-// });
 const CASH_PLAYER_KEY = 'slot:cashplayer';
 const RET_KEY = 'slot:returnTo';
 const BET_KEY = 'slot:betlines';
@@ -88,6 +83,7 @@ function saveBalance_Bet(){
 }
 document.addEventListener('DOMContentLoaded', () => {
     loadBalance_Bet();
+    document.getElementById("rounds").textContent=roundAmount[i1];
     document.getElementById("bet").textContent=betAmount[i];
     document.getElementById("Totalbet").textContent=(betAmount[i]*5).toFixed(2);
     document.getElementById("credit").textContent=cashPlayer.toFixed(2);
@@ -101,6 +97,33 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(i);
   });
 let cashPlayer=500.00;
+let gambleLimit = 2000.00;
+
+let i1=0;
+const roundAmount = [5,10,25,50,100,1000,Infinity];
+var roundText = parseFloat(roundAmount[i1]);
+function incrementAuto(){
+    i1++;
+    if(i1>6)
+        i1=0;
+    if (i1 ==6)
+    if (i1 == 6) {
+        document.getElementById("rounds").textContent = "∞";
+    } else {
+        document.getElementById("rounds").textContent = roundAmount[i1];
+    }
+}
+function decrementAuto(){
+    i1--;
+    if(i1<0)
+        i1=6;
+
+     if (i1 == 6) {
+        document.getElementById("rounds").textContent = "∞";
+    } else {
+        document.getElementById("rounds").textContent = roundAmount[i1];
+    }
+}
 let i =0;
 const betAmount = [1,2,5,10,20];
 var betText = parseFloat(betAmount[i]);
@@ -165,12 +188,22 @@ creditSpan.addEventListener("click",()=>{
     creditSpan.style.color="white";
     creditValue.innerText=cashPlayer*100;
 })
+// gambleBtn.addEventListener("click",)
 //--------------------------------------------------------------
 //Info dugmici
 const infoDiv= document.getElementById("help-screen");
 const infoBtn = document.getElementById("infoBtn");
 const helpContent = document.getElementById("help-content");
 const closeBtn = document.getElementById("close-help-screen");
+const autoGamble = document.getElementById("close-auto-screen");
+const autoDiv = document.getElementById("autoScreen")
+const autoscreen = document.getElementById("autoscreen");
+autoscreen.addEventListener("click",()=>{
+    autoDiv.style.visibility="visible";
+})
+autoGamble.addEventListener("click",()=>{
+    autoDiv.style.visibility="hidden";
+})
 infoBtn.addEventListener("click", ()=>{
 
     infoDiv.style.visibility="visible";
@@ -376,24 +409,64 @@ window.addEventListener('load', () => {
 
 // const simboli = [
 //                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                 { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                      { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                 { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                      { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+//                    { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
-//                   { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                      { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
-//                     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
 //                     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},   
                
 //             ];
+            // const simboli = [
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //         { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //        { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //         { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},   
+               
+            // ];
+            // const simboli = [
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //        { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //     { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //          { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //         { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //          { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //        { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //       { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",width: 260, height: 260},
+            //          { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},
+            //         { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png" ,width: 260, height: 260},   
+               
+            // ];
 let drawSymbols;
 let animacijaLoop= false;
+let symbolIndex = 0;
+let dobitneLinije=[];
+let loopAnimacija=null;
+let dobitneLinije2=[]
 function drawSlot(){
     if(cashPlayer<=0){
         alert("Nemas vise kredita, ubaci jos novca");
@@ -438,6 +511,8 @@ function drawSlot(){
     for(let row=0;row<rows;row++){
         for(let col=0;col<cols;col++){
             const symbol=generateSymbol();
+            // const symbol =simboli[symbolIndex]
+            // symbolIndex++;
             // console.log(symbol);
             let x;
             let y;
@@ -484,6 +559,7 @@ function drawSlot(){
     loopAnimacija = null;
     }
     dobitneLinije = [];
+    dobitneLinije2=[];
     // console.log(dobitneLinije); 
 
     setTimeout(()=>{
@@ -492,21 +568,20 @@ function drawSlot(){
     //  console.log(drawSymbols);
 }
 
-let dobitneLinije=[];
-let loopAnimacija=null;
-
 function Spoji(){
     const mySpin = currentSpinId;
     let x1;
     let x2;
     let brojac = 0;
     let j;
-    
+    // console.log(`Dobitne Linije:`, dobitneLinije);
+    // console.log(dobitneLinije);
     //Idemo kroz redove 
     for (let m = 0; m < 3; m++){
         if (mySpin !== currentSpinId) return;
         brojac = 0;
-        x1 = drawSymbols[m*5]; //prvi element za svaki red
+        x1 = drawSymbols[m*5];
+        // console.log('x1:', x1); //prvi element za svaki red
         j = m*5+1; // indeks za element nakon prvog u redu
         for (let i = 0; i < 4; i++){
             x2 = drawSymbols[j];
@@ -521,13 +596,64 @@ function Spoji(){
             let prom = 5*m; // indeks za prvi element u nizu 
           
             while(0 <= brojac){
+                
                 tempSimb = drawSymbols[prom];
+                // console.log("TempSimb: ",tempSimb);
                 dobitneLinije.push(tempSimb);
                 prom++; 
                 brojac--; 
             }           
         }
     }
+    console.log("DrawSymbol : ",drawSymbols);
+    //Druga Linija spajanja
+    let y1;
+    let y2;
+    let brojac1 = 0;
+    let i1 = 0;
+    // while(i1<3){
+        y1=drawSymbols[0];
+        dobitneLinije2.push(y1);
+        console.log("y1",y1)
+        for(let x = 1;x<3;x++)
+        {
+            y2=drawSymbols[x*6];
+            // console.log("y2",y2);
+            if(y1.id==y2.id)
+            {
+                
+                brojac1++
+                dobitneLinije2.push(y2);                
+            }
+            else{
+                break;
+            }
+
+        }
+        if(brojac1==2)
+        {
+            for(let x = 2;x>0;x--)
+            {
+                y2=drawSymbols[x*4]
+                console.log("y2",y2);
+                if(y1.id==y2.id)
+                {
+                    brojac1++
+                    dobitneLinije2.push(y2);
+                }
+                else{
+                    break
+                }
+            }
+        }
+        if(brojac1>=2)
+        {
+            console.log("ALOOOO");
+        }
+        console.log(brojac1);
+        console.log("Dobitne2: " , dobitneLinije2);
+//---------------------------------------------------
+    // }
     
     if (mySpin !== currentSpinId) return;
     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
@@ -537,7 +663,8 @@ function Spoji(){
     cashPlayer -= totalBet;
     creditValue.textContent = cashPlayer.toFixed(2);
     
-    if(dobitneLinije.length > 0) {
+   
+    if(dobitneLinije.length > 0 || dobitneLinije2.length>2) {
         // console.log("Pronadjena dobitna linija");
         // trigger=false;
         const grupa = {};
@@ -553,8 +680,9 @@ function Spoji(){
         // Racunanje dobitka
         for(let yPoz in grupa) {
             var wintmp = 0;
-            tmp = grupa[yPoz];
+            let tmp = grupa[yPoz];
             let x = tmp.length;
+            console.log("tmp u dobitku: " ,tmp);
 
             switch(tmp[0].value) {
                 case 1:
@@ -594,6 +722,46 @@ function Spoji(){
             }
             win += wintmp;
         }
+        //Dobitak za nakrivo liniju(4linija)
+        let wintmp1 =0
+        let tmp1 = dobitneLinije2.length;
+        switch(dobitneLinije2[0].value) {
+                case 1:
+                    switch(tmp1) {
+                        case 3: wintmp1 = totalBet * 10; break;
+                        case 4: wintmp1 = totalBet * 40; break;
+                        case 5: wintmp1 = totalBet * 600; break;
+                        default: wintmp1 = 0; break;    
+                    }
+                    break;
+                case 2:
+                    switch(tmp1) {
+                        case 3: wintmp1 = totalBet * 8; break;
+                        case 4: wintmp1 = totalBet * 20; break;
+                        case 5: wintmp1 = totalBet * 100; break;
+                        default: wintmp1 = 0; break;    
+                    }
+                    break;
+                case 3: 
+                    switch(tmp1) {
+                        case 3: wintmp1 = totalBet * 4; break;
+                        case 4: wintmp1 = totalBet * 10; break;
+                        case 5: wintmp1 = totalBet * 40; break;
+                        default: wintmp1 = 0; break;        
+                    }
+                    break;   
+                case 4:
+                    switch(tmp1) {
+                        case 3: wintmp1 = totalBet * 2; break;
+                        case 4: wintmp1 = totalBet * 6; break;
+                        case 5: wintmp1 = totalBet * 20; break;
+                        default: wintmp1 = 0; break;    
+                    }
+                    break;
+                default:
+                    wintmp1 = 0;
+            }
+            win += wintmp1;
         
         // console.log("Win:" + win); 
         document.getElementById("win").textContent = win.toFixed(2);
@@ -606,7 +774,9 @@ function Spoji(){
             if (autoMode) {
                 MoneyTransferAuto(win);
             } else {
-                 gambleBtn.classList.remove("disabled");
+                if(win<=gambleLimit){
+                    gambleBtn.classList.remove("disabled");
+                }
                 setButtonTakeWin(win);
             }
         }, 2800); // Ceka da se zavrse pocetne animacije
@@ -642,7 +812,7 @@ dugme2.addEventListener('click', () => {
         alert("Nemas dovoljno kredita za Auto mode!");
         return;
     }
-    
+    autoDiv.style.visibility="hidden";
     if (autoMode) {
         stopAutoMode();
     } else {
@@ -702,7 +872,7 @@ function pokreniAnimacijuSvih(){
             tag = true;
         } else {
             endX = poslednji.x + poslednji.width;
-            x = cssW - poslednji.width / 2 - grupa[0].x;
+            x = cssW - poslednji.width / 2 - grupa[0].x-7; // 7 je dodata kako bi se preklopila 4 linija sa 1 linijom
         }
         // Animacije simbola u ovoj grupi
         for (let simbol of grupa) {
@@ -714,6 +884,17 @@ function pokreniAnimacijuSvih(){
             grupa[0].x + 20,endX,x,Number(yPoz),grupa,tag
         );
     }
+    if(dobitneLinije2.length>2)
+    {
+        nacrtajLinije2();
+        for(let simbol of dobitneLinije2){
+        startCanvasAnimation(1800,simbol);
+        }
+        
+
+    }
+    
+    
 
     // Pokreni loop animacije (1 po 1 red) nakon pocetnih animacija
     if (startLoopTimer) { 
@@ -722,10 +903,111 @@ function pokreniAnimacijuSvih(){
     }
     
     startLoopTimer = setTimeout(() => {
-        if (!hardStop && mySpin === currentSpinId && dobitneLinije.length > 0) {
+        if (!hardStop && mySpin === currentSpinId && (dobitneLinije.length > 0 || dobitneLinije2.length>2)) {
             pokreniAnimLoop();
         }
     }, 2600);
+}
+function nacrtajLinije2(){
+  
+     const myResize = resizeToken;
+    const mySpin = currentSpinId; 
+        let width = dobitneLinije2[0].width;
+        let height =  dobitneLinije2[0].height;
+        ctxLine.strokeStyle = "yellow";
+        ctxLine.lineWidth = debljina;
+
+         ctxFront.strokeStyle = "yellow";
+        ctxFront.lineWidth = debljina;
+
+        function crtaj(){
+        let x1 = dobitneLinije2[0].x+width/2;
+        let x2= dobitneLinije2[2].x+width/2;
+        let y1 = dobitneLinije2[0].y+height/2;
+        let y2= dobitneLinije2[2].y+height/2;
+        // console.log("x1 : " ,x1);
+        // console.log("x2 : " ,x2);
+        // console.log("y1 : " ,y1);
+        // console.log("y2 : " ,y2); 
+      
+        // console.log("drawSymbols: ",drawSymbols)
+        ctxLine.beginPath();
+        ctxLine.moveTo(x1, y1);
+        ctxLine.lineTo(x2, y2);
+        ctxLine.stroke();
+        let x11=x2;
+        let y11=y2;
+        let length = dobitneLinije2.length;
+        let y22=dobitneLinije2[length-1].y+height/2;
+        let x22=dobitneLinije2[length-1].x+width/2;
+        let xEnd = drawSymbols[4].x+width/2;
+        let yEnd = drawSymbols[4].y + height/2;
+        if(dobitneLinije2.length==5){
+              console.log("Uso sam u crtaj 5");
+             ctxLine.beginPath();
+            ctxLine.moveTo(x11, y11);
+            ctxLine.lineTo(x22, y22);
+            ctxLine.stroke();
+        }
+        else if(dobitneLinije2.length==3){
+            console.log("Uso sam u crtanje sa 3 ");
+            let xTmp = dobitneLinije2[2].x + width+10;
+            let yTmp = dobitneLinije2[2].y;
+         
+            ctxLine.beginPath();
+            ctxLine.moveTo(x11,y11);
+            ctxLine.lineTo(xTmp,yTmp);
+            ctxLine.stroke();
+
+            ctxFront.beginPath()
+            ctxFront.moveTo(xTmp,yTmp);
+            ctxFront.lineTo(xEnd,yEnd);
+            ctxFront.stroke();
+
+        }
+        else{
+              console.log("Uso sam u crtaj4");
+            ctxLine.beginPath();
+            ctxLine.moveTo(x11, y11);
+            ctxLine.lineTo(x22, y22);
+            ctxLine.stroke();
+            let xTmp = dobitneLinije2[length-1].x + width+10;
+            let yTmp = dobitneLinije2[length-1].y;
+            
+            ctxLine.beginPath();
+            ctxLine.moveTo(x22, y22);
+            ctxLine.lineTo(xTmp, yTmp);
+            ctxLine.stroke();
+
+
+            ctxFront.beginPath()
+            ctxFront.moveTo(xTmp,yTmp);
+            ctxFront.lineTo(xEnd,yEnd);
+            ctxFront.stroke();
+        }
+       
+        
+        // console.log("x11 : " ,x11);
+        // console.log("x22 : " ,x22);
+        // console.log("y11 : " ,y11);
+        // console.log("y22 : " ,y22);
+
+       
+
+          const sveZavrsene = dobitneLinije2.every(simbol => !simbol._isRunning || simbol._spinId !== mySpin);
+
+         if(!sveZavrsene){
+            requestAnimationFrame(crtaj);
+
+        }
+        else{
+            ctxLine.clearRect(0,0,canvas.width,canvas.height);
+            ctxFront.clearRect(0,0,canvas.width,canvas.height);
+            // console.log("hej");
+        }
+        }
+        requestAnimationFrame(crtaj);
+       
 }
 
 function pokreniAnimLoop() {
@@ -750,7 +1032,7 @@ function pokreniAnimLoop() {
     
     // Sortiranje y vrednosti (npr. 0, 50, 100)
     const yRedosled = Object.keys(grupePoY).map(Number).sort((a, b) => a - b);
-    
+    console.log("yRedosled",yRedosled.length);
     // console.log("YRedosled : " + yRedosled);
     
     let indeks = 0;
@@ -758,7 +1040,17 @@ function pokreniAnimLoop() {
     function animirajSledecuGrupu() {
         
           if (!animacijaLoop  || yRedosled.length === 0) return;
+          if(indeks==yRedosled.length){
+             for(let simbol of dobitneLinije2)
+            {
+                startCanvasAnimation(1800,simbol);
+            }
+            nacrtajLinije2()
+          }
+        else{
+        console.log("Indeks",indeks);
         const y = yRedosled[indeks];
+        
         const grupa = grupePoY[y];
         let tag = false;
         let i =0;
@@ -770,14 +1062,14 @@ function pokreniAnimLoop() {
         let yPoz = y+(grupa[0].height)/2; // sredina y svakog reda za crtanje linije
         let x;
         if(grupa.length===5){
-            endX=grupa[duzina-1].x+grupa[0].width/2;
+            endX=grupa[duzina-1].x+grupa[0].width/2.2;
             x=endX;
             tag=true;
-            console.log("USO SAM");
+            // console.log("USO SAM");
         }
         else{
              x= cssW-grupa[0].width/2-grupa[0].x;
-            endX=grupa[duzina-1].x+grupa[0].width;
+            endX=grupa[duzina-1].x+grupa[0].width-20;
         }
 
         // Animacija svih simbola u toj grupi
@@ -787,10 +1079,32 @@ function pokreniAnimLoop() {
         }
         
         nacrtajLinije(startX,endX,x,yPoz,grupa,tag);
+        }          
         
-        indeks = (indeks + 1) % yRedosled.length;
+        // if(indeks==3){
+        //    
+        // }
+      
+        if(dobitneLinije2.length>2)
+        {
+            indeks = (indeks + 1) % (yRedosled.length+1);
+        }
+        else{
+            indeks = (indeks + 1) % (yRedosled.length);
+        }
+        
+        // console.log(indeks);
+        // console.log(yRedosled.length);
+        // if(indeks == yRedosled.length-1)
+        // {
+        //     for(let simbol of dobitneLinije2){
+        // startCanvasAnimation(1800,simbol);
+        // }
+        // }
         loopAnimacija=setTimeout(animirajSledecuGrupu, 2600); // rekurzivni poziv fje da animira sve ostale grupe po vrednoscu Y 
     }
+    
+
 
     animirajSledecuGrupu(); // pokreni prvu grupu
 }
@@ -960,8 +1274,7 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
         const sveZavrsene = grupa.every(simbol => !simbol._isRunning || simbol._spinId !== mySpin);
 
         if (sveZavrsene) {
-            const pad = 2;
-
+        const pad = 2;
 
         const yTopLine   = Math.floor(y - (ctxLine.lineWidth / 2) - pad);
         const hLine      = Math.ceil(ctxLine.lineWidth) + pad*2;
@@ -996,7 +1309,7 @@ function nacrtajLinije(startX , endX,endX2, y, grupa,tag){
 let trigger=false;
 let timer = null;
 let isPayingOut = false;
-function MoneyTransfer(amount)
+function MoneyTransfer(amount,callback)
 {
      if (isPayingOut) return;
     isPayingOut = true;
@@ -1035,7 +1348,9 @@ function MoneyTransfer(amount)
         dugme.classList.remove("disabled");
         isPayingOut = false;
             setButtonStart();
-        
+         if (callback && typeof callback === 'function') {
+                callback();
+            }
           
       }
     }
@@ -1081,7 +1396,7 @@ function MoneyTransferAuto(amount) {
             
             // Zakazuj sledeci auto spin
             if (autoMode) {
-                scheduleNextAutoSpin(dobitneLinije.length);
+                scheduleNextAutoSpin(dobitneLinije.length,dobitneLinije2.length);
             }
         }
     }
@@ -1089,9 +1404,9 @@ function MoneyTransferAuto(amount) {
     requestAnimationFrame(tick);
 }
 // Funkcija za zakazivanje sledeceg auto spina
-function scheduleNextAutoSpin(numWinningLines) {
+function scheduleNextAutoSpin(num1,num2) {
     if (!autoMode) return;
-    
+    // console.log(numWinningLines);
     // Proveri da li igrac ima dovoljno novca za sledeci bet
     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
     if (cashPlayer < totalBet) {
@@ -1100,36 +1415,131 @@ function scheduleNextAutoSpin(numWinningLines) {
         alert("Nemas vise kredita!");
         return;
     }
+
+
+   
+        currentAutoRound++;
+        console.log(`Runda ${currentAutoRound} od ${maxAutoRounds}`);
     
+        if (currentAutoRound >= maxAutoRounds) {
+        console.log("Dostignut maksimalan broj rundi!");
+        stopAutoMode();
+        alert(`Zavrsene auto runde!`);
+        return;
+        }
+    
+    
+     const grupePoY = {}; 
+
+    for (let simbol of dobitneLinije) {
+        if (!grupePoY[simbol.y]) {
+            grupePoY[simbol.y] = [];
+        }
+
+       
+        grupePoY[simbol.y].push(simbol);
+    }
+
+    
+    // Sortiranje y vrednosti (npr. 0, 50, 100)
+    const yRedosled = Object.keys(grupePoY).map(Number).sort((a, b) => a - b);
+
+    //Mora da se resi kad ima manje od 15 a ima 4 linije za spajanje 
     let delay;
     
-    if (numWinningLines === 0) {
-        delay = 1300; // Nema dobitnih linija
-    } else if (numWinningLines <= 5) {
-        delay = 1500; // 1 dobitna linija 
-    } else if (numWinningLines <= 10) {
-        delay = 3350; // 2 dobitne linije  
-    } else {
-        delay = 6500; // 3+ dobitne linije
+    if(num2<=2){
+        if(num1 == 0)
+        {
+            delay = 1300; 
+        }
+        else if (num1 <=5 )
+        {
+            delay = 1500; // 1 dobitna linija
+        }
+        else if (num1 <=10)
+        {
+            delay=3350  //2 dobitne linije
+        }
+        else{
+            delay = 6500 // 3 dobitne linije
+        }
+
     }
+    else {
+        if(num1 == 0)
+        {
+            delay=1500; // 1 dobitna samo kosa
+        }
+        else if (num1 <=5)
+        {
+            delay = 3350; // 2 dobitne kosa i 1 ravna
+        }
+        else if (num1<=10 && yRedosled.length!=3) // slucaj 3 3 4 (ravne) i 3 kosa 
+        {
+            delay = 6500; // 3 dobitne kosa i 2 ravne 
+        }
+        else {
+            delay = 9300;
+        }
+
+    }
+
+
+    // if (numWinningLines === 0) {
+    //     delay = 1300; // Nema dobitnih linija
+    // } else if (numWinningLines <= 5) {
+    //     delay = 1500; // 1 dobitna linija 
+    // } else if (numWinningLines <= 10) {
+    //     delay = 3350; // 2 dobitne linije  
+    // } else  if(numWinningLines<=15){
+    //     delay = 6500; // 3+ dobitne linije
+    // }
+    // else {
+    //     delay = 9300;
+    // }
+    console.log()
     
     // console.log(`Zakazujem sledeci auto spin za ${delay}ms...`);
     
+    console.log(i);
     autoTimer = setTimeout(() => {
         if (autoMode) {
             console.log("Pokretam sledeci auto spin");
             drawSlot();
         }
+        // while(y<=i && autoMode)
+        // {
+        //     drawSlot();
+        //     y++
+        // }
     }, delay);
 }
 // Funkcija za pokretanje auto mode-a
 function startAutoMode() {
-    autoMode = true;
-    dugme.classList.add("disabled");
-    dugme2.classList.add("active");
-    gambleBtn.classList.add("disabled");
-    // Pokreni prvi spin
-    drawSlot();
+    maxAutoRounds = roundAmount[i1];
+    console.log(maxAutoRounds);
+    
+    currentAutoRound = 0;
+    let amount = document.getElementById("win").textContent;
+   if(amount > 0) {
+        // Prvo prebaci win u cash, PA TEK ONDA pokreni auto
+        MoneyTransfer(amount, () => {
+            // Ovaj kod se izvršava NAKON što se transfer završi
+            autoMode = true;
+            dugme.classList.add("disabled");
+            dugme2.classList.add("active");
+            gambleBtn.classList.add("disabled");
+            // Pokreni prvi spin
+            drawSlot();
+        });
+    } else {
+        // Nema dobitka, odmah pokreni auto
+        autoMode = true;
+        dugme.classList.add("disabled");
+        dugme2.classList.add("active");
+        gambleBtn.classList.add("disabled");
+        drawSlot();
+    }
 }
 // Funkcija za zaustavljanje auto mode-a
 function stopAutoMode() {
@@ -1137,7 +1547,14 @@ function stopAutoMode() {
     autoMode = false;
     dugme2.classList.remove("active");
     dugme.classList.remove("disabled");
-     gambleBtn.classList.remove("disabled");
+    let amount = document.getElementById("win").value;
+    currentAutoRound = 0;
+    maxAutoRounds = 0;
+    console.log(amount);
+    if(amount<=gambleLimit)
+    {
+         gambleBtn.classList.remove("disabled");
+    }
     // Ocisti sve auto tajmere
     if (autoTimer) {
         clearTimeout(autoTimer);
@@ -1191,3 +1608,6 @@ function stopAllAnimationsAndFreeze() {
     }, 100);
 }
 // da li u toku padanja reeelova on vec spoji sta treba i zato odmah spaja kod veryHot 5???
+
+//ako je gamble limit za winove ako osvojimo 2000 ne moze gamble  : dodato 
+//Auto play mode , koliko rundi uz to dodati opcije kao checkbox : stopOnWin , limitPotrosenogNovca nakog koga se autoplay prekida

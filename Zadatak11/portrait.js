@@ -99,10 +99,10 @@
     const AmountValueEl= document.querySelectorAll(".gamble-info-amount");
 
     AmountLabelEl.forEach(e=>{
-        e.style.fontSize=(baseForAll*0.03)+"px";
+        e.style.fontSize=(baseForAll*0.04)+"px";
     })
     AmountValueEl.forEach(e=>{
-        e.style.fontSize=(baseForAll*0.03)+"px";
+        e.style.fontSize=(baseForAll*0.045)+"px";
     })
 
 
