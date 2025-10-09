@@ -73,9 +73,10 @@ img{
 
 }
 #button2.active {
-     background-color: green;
+     background-color: red;
      transform: scale(1.1);
-}
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
 #button:hover {
     background-color: green;
     transform: scale(1.1);
@@ -440,7 +441,6 @@ p img {
     border-radius: 10px;
     border: 1px solid #393939;
     padding: 1%;
-    margin: 5% 15%;
     width: 30%;
     height: 30%;
     display: flex;
@@ -450,12 +450,25 @@ p img {
 .autoDiv{
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 3%;
 }
 #autoContent input[type="number"] {
     width: 50%;
     height: 15%;
     padding: 8px;
     box-sizing: border-box;
+    margin-right: 20px;
+    
+}
+label,button{
+    font-weight: bold;
+    font-family:Arial, Helvetica, sans-serif
+}
+.autoDivBox{
+    margin-left: 40%;
+    align-self: center; /* centrira po X osi */
+    width: 60%; /* opciono - širina div2 */
 }
 #autoContent input[type="checkbox"] {
     margin-right: 15%;
@@ -480,5 +493,8 @@ p img {
     z-index: 1001;
 }
 .infoForRounds{
-    width: 30%;
+    width: 40%;
+}
+.cursor1{
+
 }

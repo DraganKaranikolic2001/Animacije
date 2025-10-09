@@ -17,6 +17,7 @@ let autoMode = false;
 let autoTimer = null;
 let maxAutoRounds = 0;        
 let currentAutoRound = 0; 
+let maxMoney=0 ;
 const page= document.getElementById("main-container");
 const dugme = document.getElementById("button");
 const dugme2 = document.getElementById("button2");
@@ -24,11 +25,11 @@ const gambleBtn = document.getElementById("gambleBtn");
 const symbols = [
     // { id:0 , src : "symbols/0.png", srcSprite:"sprites/0.png" ,width: 260, height: 260},
     { id:1 , src : "symbols/1.png" , srcSprite:"sprites/1.png",value:1},
-    // { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
-    // { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
-    // { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
-    // { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
-    // { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
+    { id:2 , src : "symbols/2.png" ,srcSprite:"sprites/2.png",value:2 },
+    { id:3 , src : "symbols/3.png" ,srcSprite:"sprites/3.png" ,value:2},
+    { id:4 , src : "symbols/4.png" ,srcSprite:"sprites/4.png" ,value:3},
+    { id:5 , src : "symbols/5.png" ,srcSprite:"sprites/5.png",value:4},
+    { id:6 , src : "symbols/6.png" ,srcSprite:"sprites/6.png" ,value:4},
     { id:7 , src : "symbols/7.png" ,srcSprite:"sprites/7.png" ,value:4},
     // { id:8 , src : "symbols/8.png" ,srcSprite:"sprites/8.png" ,value:4},
     // { id:9 , src : "symbols/9.png" ,srcSprite:"sprites/9.png" ,width: 260, height: 260},
@@ -650,8 +651,8 @@ function Spoji(){
         {
             console.log("ALOOOO");
         }
-        console.log(brojac1);
-        console.log("Dobitne2: " , dobitneLinije2);
+        // console.log(brojac1);
+        // console.log("Dobitne2: " , dobitneLinije2);
 //---------------------------------------------------
     // }
     
@@ -800,7 +801,7 @@ function Spoji(){
         
 
         if (autoMode) {
-            scheduleNextAutoSpin(0); // 0 = nema dobitnih linija
+            scheduleNextAutoSpin(0,0); // 0 = nema dobitnih linija
         }
     }
 }
@@ -1032,8 +1033,7 @@ function pokreniAnimLoop() {
     
     // Sortiranje y vrednosti (npr. 0, 50, 100)
     const yRedosled = Object.keys(grupePoY).map(Number).sort((a, b) => a - b);
-    console.log("yRedosled",yRedosled.length);
-    // console.log("YRedosled : " + yRedosled);
+    // console.log("yRedosled",yRedosled.length);
     
     let indeks = 0;
 
@@ -1048,7 +1048,7 @@ function pokreniAnimLoop() {
             nacrtajLinije2()
           }
         else{
-        console.log("Indeks",indeks);
+        // console.log("Indeks",indeks);
         const y = yRedosled[indeks];
         
         const grupa = grupePoY[y];
@@ -1344,7 +1344,7 @@ function MoneyTransfer(amount,callback)
         winEl.textContent    = (win0  - target).toFixed(2);
         creditEl.textContent = (cash0 + target).toFixed(2);
         cashPlayer+=amount;
-        console.log("Haha");
+        // console.log("Haha");
         dugme.classList.remove("disabled");
         isPayingOut = false;
             setButtonStart();
@@ -1359,8 +1359,27 @@ function MoneyTransfer(amount,callback)
 function MoneyTransferAuto(amount) {
     if (isPayingOut) return;
     isPayingOut = true;
-
-    console.log("Auto transfer pocinje za iznos: " + amount);
+    num1=dobitneLinije.length;
+    num2=dobitneLinije2.length;
+    const check = document.getElementById("checkbox");
+    console.log(check.checked);
+    if(check.checked && (num1>0 || num2>2)){
+        isPayingOut = false;
+        stopAutoMode();
+        dugme.classList.remove("disabled");
+        
+        // Ako je dobitak u limitu, omogući gamble
+        if(amount <= gambleLimit) {
+            gambleBtn.classList.remove("disabled");
+        }
+        
+        // Postavi dugme na "Take Win"
+        setButtonTakeWin(amount);
+        
+        return; // Izađi iz funkcije - NE prebacuj novac automatski
+    }
+    
+    // console.log("Auto transfer pocinje za iznos: " + amount);
     
     const winEl = winText;           
     const creditEl = creditValue;       
@@ -1408,6 +1427,7 @@ function scheduleNextAutoSpin(num1,num2) {
     if (!autoMode) return;
     // console.log(numWinningLines);
     // Proveri da li igrac ima dovoljno novca za sledeci bet
+       const check = document.getElementById("checkbox");
     var totalBet = parseInt(document.getElementById("Totalbet").textContent);
     if (cashPlayer < totalBet) {
         console.log("Nema dovoljno novca, zaustavljam auto mode");
@@ -1415,14 +1435,22 @@ function scheduleNextAutoSpin(num1,num2) {
         alert("Nemas vise kredita!");
         return;
     }
-
-
+    
+    if(maxMoney>0)
+    {
+        maxMoney-=betAmount[i]*5;
+    }
+    if(maxMoney==0 && moneyTrigger==true){
+        stopAutoMode();
+        alert("Prosao si limit novca sto si zadao")
+    }
+    console.log("U Schedule: ",maxMoney);
    
         currentAutoRound++;
         console.log(`Runda ${currentAutoRound} od ${maxAutoRounds}`);
     
-        if (currentAutoRound >= maxAutoRounds) {
-        console.log("Dostignut maksimalan broj rundi!");
+        if (currentAutoRound >= maxAutoRounds && moneyTrigger==false && !check.checked) {
+        // console.log("Dostignut maksimalan broj rundi!");
         stopAutoMode();
         alert(`Zavrsene auto runde!`);
         return;
@@ -1483,42 +1511,26 @@ function scheduleNextAutoSpin(num1,num2) {
         }
 
     }
-
-
-    // if (numWinningLines === 0) {
-    //     delay = 1300; // Nema dobitnih linija
-    // } else if (numWinningLines <= 5) {
-    //     delay = 1500; // 1 dobitna linija 
-    // } else if (numWinningLines <= 10) {
-    //     delay = 3350; // 2 dobitne linije  
-    // } else  if(numWinningLines<=15){
-    //     delay = 6500; // 3+ dobitne linije
-    // }
-    // else {
-    //     delay = 9300;
-    // }
-    console.log()
-    
-    // console.log(`Zakazujem sledeci auto spin za ${delay}ms...`);
-    
     console.log(i);
     autoTimer = setTimeout(() => {
         if (autoMode) {
             console.log("Pokretam sledeci auto spin");
             drawSlot();
         }
-        // while(y<=i && autoMode)
-        // {
-        //     drawSlot();
-        //     y++
-        // }
     }, delay);
 }
+let moneyTrigger = false;
 // Funkcija za pokretanje auto mode-a
 function startAutoMode() {
     maxAutoRounds = roundAmount[i1];
     console.log(maxAutoRounds);
-    
+    maxMoney=document.getElementById("moneyLimit").value;
+    console.log("U startAuto: ",maxMoney);
+    if(maxMoney>0)
+    {
+        moneyTrigger=true;
+        maxMoney-=betAmount[i]*5;    
+    }
     currentAutoRound = 0;
     let amount = document.getElementById("win").textContent;
    if(amount > 0) {
@@ -1550,6 +1562,8 @@ function stopAutoMode() {
     let amount = document.getElementById("win").value;
     currentAutoRound = 0;
     maxAutoRounds = 0;
+    maxMoney=0;
+    moneyTrigger=false;
     console.log(amount);
     if(amount<=gambleLimit)
     {
