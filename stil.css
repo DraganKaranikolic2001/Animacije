@@ -418,8 +418,8 @@ p img {
 }
 
 /* Za gamble deo*/
-#autoScreen{
-     visibility: hidden;
+#autoScreen {
+    visibility: hidden;
     position: fixed; 
     left: 0;
     top: 0;
@@ -428,12 +428,12 @@ p img {
     align-items: center;
     justify-content: center;
     padding-right: 20px;
-   
     z-index: 1000; 
-      inset: 0; 
+    inset: 0; 
 }
-#autoContent{
-     left: 0;
+
+#autoContent {
+    left: 0;
     top: 0;
     color: white;
     background-color: #242424;
@@ -447,33 +447,38 @@ p img {
     flex-direction: column;
     justify-content: space-around;
 }
-.autoDiv{
+
+.autoDiv {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 3%;
 }
+
 #autoContent input[type="number"] {
     width: 50%;
     height: 15%;
     padding: 8px;
     box-sizing: border-box;
     margin-right: 20px;
-    
 }
-label,button{
+
+label, button {
     font-weight: bold;
-    font-family:Arial, Helvetica, sans-serif
+    font-family: Arial, Helvetica, sans-serif;
 }
-.autoDivBox{
+
+.autoDivBox {
     margin-left: 40%;
-    align-self: center; /* centrira po X osi */
-    width: 60%; /* opciono - širina div2 */
+    align-self: center;
+    width: 60%;
 }
+
 #autoContent input[type="checkbox"] {
     margin-right: 15%;
     box-sizing: border-box;
 }
+
 #autoContent button {
     color: black;
     width: 50%;
@@ -483,7 +488,8 @@ label,button{
     box-sizing: border-box;
     border-radius: 10px;
 }
-#close-auto-screen{
+
+#close-auto-screen {
     position: absolute;
     top: 30%;
     right: 32%;
@@ -492,9 +498,7 @@ label,button{
     cursor: pointer;
     z-index: 1001;
 }
-.infoForRounds{
-    width: 40%;
-}
-.cursor1{
 
+.infoForRounds {
+    width: 40%;
 }
