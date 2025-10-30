@@ -314,6 +314,7 @@ and responsive behavior.
   	dugme.onclick = () => {
     	MoneyTransfer(amount)
     	...
+    }
 	};
 
 
@@ -1047,20 +1048,20 @@ Development Guide
 
  Key Systems
 
-**Spin ID System** - Sprečava animacije iz starih spinova:
+Spin ID System - Sprečava animacije iz starih spinova:
 
 currentSpinId++;                             // Svaki spin dobija unique ID
 symbolObj._spinId = currentSpinId;           // Povezivanje
 if (mySpin !== currentSpinId) return;        // Validacija
 
 
-**Resize Token** - Invalidira animacije pri resize-u:
+Resize Token - Invalidira animacije pri resize-u:
 
 resizeToken++;                               // Pri resize-u
 if (myResize !== resizeToken) return;        // Provjera
 
 
-**Normalized Coordinates** - Za responsive design:
+Normalized Coordinates - Za responsive design:
 
 s.nx = s.x / cssW;                           // Čuvanje relativne pozicije
 s.x = s.nx * cssW;                           // Vraćanje u apsolutnu
@@ -1068,21 +1069,21 @@ s.x = s.nx * cssW;                           // Vraćanje u apsolutnu
 
 Common Tasks
 
-**Dodavanje novog bet-a:**
+Dodavanje novog bet-a
 
 const betAmount = [1, 2, 5, 10, 20, 50];    // Dodaj vrednost
 
 
-**Dodavanje novog broja rundi za autoMode
+Dodavanje novog broja rundi za autoMode
 
 const roundAmount = [5,10,25,50,100,1000,Infinity]; // Dodaj novi broj rundi
 
-**Promena boje linija:**
+Promena boje linija:
 
 ctxLine.strokeStyle = "red";                 // U lines.js
 
 
-**Promena brzine animacije:**
+Promena brzine animacije
 
 startCanvasAnimation(2400, simbol);          // Umesto 1800ms
 
